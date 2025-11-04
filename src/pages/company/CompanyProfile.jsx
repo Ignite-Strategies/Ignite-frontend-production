@@ -51,7 +51,7 @@ export default function CompanyProfile() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-red-900 via-orange-900 to-red-800 flex items-center justify-center p-8">
+    <div className="min-h-screen bg-gradient-to-br from-red-600 via-red-700 to-red-800 flex items-center justify-center p-8">
       <div className="max-w-2xl w-full">
         {/* Header */}
         <div className="text-center mb-8">
@@ -164,7 +164,7 @@ export default function CompanyProfile() {
             <div className="flex gap-4 pt-6">
               <button
                 type="button"
-                onClick={() => navigate('/companycreateorchoose')}
+                onClick={() => navigate('/profilesetup')}
                 className="flex-1 px-6 py-3 bg-white/10 text-white font-bold rounded-xl hover:bg-white/20 transition-all"
               >
                 Back

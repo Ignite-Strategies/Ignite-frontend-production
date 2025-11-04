@@ -26,8 +26,8 @@ export default function Profilesetup() {
       const response = await api.put(`/adminUserAuth/${adminId}`, formData);
       console.log('Profile updated:', response.data);
       
-      // Redirect to company create/choose
-      navigate('/companycreateorchoose');
+      // Redirect to company profile (profile → company profile)
+      navigate('/companyprofile');
     } catch (error) {
       console.error('Profile setup error:', error);
       alert('Profile setup failed. Please try again.');
@@ -44,7 +44,7 @@ export default function Profilesetup() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-red-900 via-orange-900 to-red-800 flex items-center justify-center p-8">
+    <div className="min-h-screen bg-gradient-to-br from-red-600 via-red-700 to-red-800 flex items-center justify-center p-8">
       <div className="max-w-2xl w-full">
         {/* Header */}
         <div className="text-center mb-8">
