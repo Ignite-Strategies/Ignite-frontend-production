@@ -22,8 +22,9 @@ import Splash from './pages/Splash';
 import Signup from './pages/auth/Signup';
 import Signin from './pages/auth/Signin';
 import Profilesetup from './pages/setup/Profilesetup';
-import CompanyCreateOrChoose from './pages/setup/CompanyCreateOrChoose';
 import CompanyProfile from './pages/company/CompanyProfile';
+// Legacy routes - kept for backwards compatibility
+import CompanyCreateOrChoose from './pages/setup/CompanyCreateOrChoose';
 import JoinCompany from './pages/company/JoinCompany';
 import Cost from './pages/assessment/Cost';
 import Human from './pages/assessment/Human';
@@ -83,8 +84,24 @@ function App() {
           <Sidebar />
           <div className="flex-1 ml-64">
             <Routes>
-          <Route path="/" element={<GrowthDashboard />} />
+          {/* Entry Point - Splash checks Firebase auth and routes accordingly */}
+          <Route path="/" element={<Splash />} />
+          <Route path="/splash" element={<Splash />} />
+          
+          {/* Auth Routes */}
+          <Route path="/signup" element={<Signup />} />
+          <Route path="/signin" element={<Signin />} />
+          
+          {/* Hydration Home - Central routing hub (TODO: create component) */}
+          {/* <Route path="/hydration-home" element={<HydrationHome />} /> */}
+          
+          {/* Onboarding Routes */}
+          <Route path="/profilesetup" element={<Profilesetup />} />
+          <Route path="/companyprofile" element={<CompanyProfile />} />
+          
+          {/* Main Dashboard */}
           <Route path="/growth-dashboard" element={<GrowthDashboard />} />
+          <Route path="/companydashboard" element={<CompanyDashboard />} />
           <Route path="/proposals" element={<ProposalsList />} />
           <Route path="/proposals/:clientId" element={<ProposalPage />} />
           <Route path="/close-deals" element={<CloseDeals />} />
@@ -133,14 +150,10 @@ function App() {
         <Route path="/settings" element={<Settings />} />
         <Route path="/roadmap" element={<BDPipelineRoadmap />} />
         <Route path="/insights" element={<Insights />} />
-        <Route path="/splash" element={<Splash />} />
-        <Route path="/signup" element={<Signup />} />
-        <Route path="/signin" element={<Signin />} />
-        <Route path="/profilesetup" element={<Profilesetup />} />
+        
+        {/* Legacy/Deprecated Routes - kept for backwards compatibility */}
         <Route path="/companycreateorchoose" element={<CompanyCreateOrChoose />} />
-        <Route path="/companyprofile" element={<CompanyProfile />} />
         <Route path="/joincompany" element={<JoinCompany />} />
-        <Route path="/companydashboard" element={<CompanyDashboard />} />
           <Route path="/cost" element={<Cost />} />
           <Route path="/human" element={<Human />} />
             </Routes>
