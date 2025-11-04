@@ -9,7 +9,7 @@ export default function Splash() {
   useEffect(() => {
     let unsubscribe = null;
 
-    // Show logo for 800ms, then check Firebase auth state
+    // Show logo for 2 seconds, then check Firebase auth state
     const timer = setTimeout(() => {
       // Check Firebase auth state (Firebase SDK reads from its internal storage)
       unsubscribe = onAuthStateChanged(auth, (user) => {
@@ -22,7 +22,7 @@ export default function Splash() {
           navigate('/signup');
         }
       });
-    }, 800);
+    }, 2000);
 
     // Cleanup: clear timer and unsubscribe from auth listener
     return () => {
@@ -34,7 +34,7 @@ export default function Splash() {
   }, [navigate]);
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-red-900 via-orange-900 to-red-800 flex items-center justify-center">
+    <div className="min-h-screen bg-gradient-to-br from-red-600 via-red-700 to-red-800 flex items-center justify-center">
       <div className="text-center">
         <img src="/logo.png" alt="Ignite Strategies" className="h-32 mx-auto mb-8" />
         <h1 className="text-4xl font-bold text-white mb-2">
