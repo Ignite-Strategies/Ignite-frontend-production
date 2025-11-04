@@ -140,16 +140,6 @@ export default function Signup() {
             Sign In
           </button>
         </p>
-
-        {/* Back to Home */}
-        <div className="pt-4 border-t border-white/20">
-          <button
-            onClick={() => navigate('/')}
-            className="text-white/80 hover:text-white transition text-sm"
-          >
-            ← Back to Home
-          </button>
-        </div>
       </div>
     </div>
   );
