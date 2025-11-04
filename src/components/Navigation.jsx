@@ -14,6 +14,7 @@ export default function Navigation() {
     { path: '/personas', label: 'Personas', icon: '👤' },
     { path: '/outreach', label: 'Outreach', icon: '📧' },
     { path: '/meetings', label: 'Meetings', icon: '📅' },
+    { path: '/proposals', label: 'Proposals', icon: '📄' },
     { path: '/assessment', label: 'Assessment', icon: '📊' },
     { path: '/settings', label: 'Settings', icon: '⚙️' },
   ];

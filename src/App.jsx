@@ -17,6 +17,8 @@ function ScrollToTop() {
 // Pages
 import ProposalPage from './pages/proposals/ProposalPage';
 import ProposalsList from './pages/proposals/ProposalsList';
+import ServiceLibrary from './pages/proposals/ServiceLibrary';
+import ProposalBuilder from './pages/proposals/ProposalBuilder';
 import AssessmentIntro from './pages/assessment/AssessmentIntro';
 import Splash from './pages/Splash';
 import Signup from './pages/auth/Signup';
@@ -103,6 +105,9 @@ function App() {
           <Route path="/growth-dashboard" element={<GrowthDashboard />} />
           <Route path="/companydashboard" element={<CompanyDashboard />} />
           <Route path="/proposals" element={<ProposalsList />} />
+          <Route path="/proposals/service-library" element={<ServiceLibrary />} />
+          <Route path="/proposals/create" element={<ProposalBuilder />} />
+          <Route path="/proposals/edit/:proposalId" element={<ProposalBuilder />} />
           <Route path="/proposals/:clientId" element={<ProposalPage />} />
           <Route path="/close-deals" element={<CloseDeals />} />
           <Route path="/assessment-intro" element={<AssessmentIntro />} />

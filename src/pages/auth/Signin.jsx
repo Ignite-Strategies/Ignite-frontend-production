@@ -22,8 +22,8 @@ export default function Signin() {
       
       console.log("✅ Google sign-in successful:", result);
       
-      // Call backend findOrCreate (will find existing user)
-      const res = await api.post("/adminUserAuth/findOrCreate", {
+      // Call backend user create route (Pattern A - find or create)
+      const res = await api.post("/api/user/create", {
         firebaseId: result.uid,
         email: result.email,
         firstName: result.name?.split(' ')[0] || '',
@@ -31,16 +31,20 @@ export default function Signin() {
         photoURL: result.photoURL
       });
       
-      const admin = res.data;
-      console.log("✅ Admin found:", admin.id);
+      const { user } = res.data;
+      console.log("✅ User found/created:", user.id);
       
       // Store auth data
       localStorage.setItem("firebaseId", result.uid);
-      localStorage.setItem("adminId", admin.id);
-      localStorage.setItem("email", admin.email || result.email);
+      localStorage.setItem("userId", user.id);
+      localStorage.setItem("email", user.email || result.email);
+      
+      // Store Firebase token for future requests
+      const idToken = await auth.currentUser.getIdToken();
+      localStorage.setItem("firebaseToken", idToken);
       
       // Redirect to profile setup
-      console.log("✅ Existing user → Profile setup");
+      console.log("✅ User authenticated → Profile setup");
       navigate("/profilesetup");
       
     } catch (error) {
@@ -62,8 +66,8 @@ export default function Signin() {
       
       console.log("✅ Email sign-in successful:", result);
       
-      // Call backend findOrCreate (will find existing user)
-      const res = await api.post("/adminUserAuth/findOrCreate", {
+      // Call backend user create route (Pattern A - find or create)
+      const res = await api.post("/api/user/create", {
         firebaseId: result.uid,
         email: result.email,
         firstName: result.name?.split(' ')[0] || '',
@@ -71,16 +75,20 @@ export default function Signin() {
         photoURL: result.photoURL
       });
       
-      const admin = res.data;
-      console.log("✅ Admin found:", admin.id);
+      const { user } = res.data;
+      console.log("✅ User found/created:", user.id);
       
       // Store auth data
       localStorage.setItem("firebaseId", result.uid);
-      localStorage.setItem("adminId", admin.id);
-      localStorage.setItem("email", admin.email || result.email);
+      localStorage.setItem("userId", user.id);
+      localStorage.setItem("email", user.email || result.email);
+      
+      // Store Firebase token for future requests
+      const idToken = await auth.currentUser.getIdToken();
+      localStorage.setItem("firebaseToken", idToken);
       
       // Redirect to profile setup
-      console.log("✅ Existing user → Profile setup");
+      console.log("✅ User authenticated → Profile setup");
       navigate("/profilesetup");
       
     } catch (error) {
@@ -92,7 +100,7 @@ export default function Signin() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-red-900 via-orange-900 to-red-800 flex items-center justify-center p-4">
+    <div className="min-h-screen bg-gradient-to-br from-red-600 via-red-700 to-red-800 flex items-center justify-center p-4">
       <div className="max-w-md mx-auto text-center space-y-8 bg-white/10 backdrop-blur-sm rounded-2xl p-8 shadow-2xl border border-white/20">
         
         {/* Logo */}

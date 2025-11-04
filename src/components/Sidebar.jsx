@@ -18,7 +18,8 @@ import {
   Handshake,
   CheckCircle,
   Lightbulb,
-  Sparkles
+  Sparkles,
+  FileCheck
 } from 'lucide-react';
 
 const navigationGroups = [
@@ -57,6 +58,7 @@ const navigationGroups = [
     items: [
       { name: 'Outreach', path: '/outreach', icon: MessageSquare },
       { name: 'Meetings', path: '/meetings', icon: Calendar },
+      { name: 'Proposals', path: '/proposals', icon: FileCheck },
       { name: 'Close Deals', path: '/close-deals', icon: CheckCircle },
     ]
   },
