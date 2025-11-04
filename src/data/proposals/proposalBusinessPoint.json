@@ -1,0 +1,176 @@
+{
+  "id": "businesspoint-law",
+  "clientName": "BusinessPoint Law",
+  "clientCompany": "BusinessPoint Law Firm",
+  "dateIssued": "2024-01-15",
+  "status": "active",
+  "purpose": "This proposal outlines a comprehensive 12-month business development roadmap designed to establish BusinessPoint Law as a leading provider of debt-to-liquidity conversion services. Our approach combines strategic assessment, systematic pipeline development, and multi-channel visibility to generate consistent client acquisition.",
+  "preparedBy": "Ignite Strategies",
+  "phases": [
+    {
+      "id": "foundation",
+      "title": "Foundation",
+      "description": "Establish clarity, credibility, and a working system. Complete comprehensive assessments, map ecosystem, define personas, and set up operational infrastructure.",
+      "deliverables": [
+        {
+          "id": "bd-assessment",
+          "name": "BD Assessment Report",
+          "description": "Comprehensive analysis of current business development capabilities, strengths, and opportunities for growth.",
+          "why": "Understanding your baseline is critical to building a strategic roadmap. This assessment identifies gaps and opportunities in your current BD efforts."
+        },
+        {
+          "id": "ecosystem-map",
+          "name": "Ecosystem Map",
+          "description": "Visual mapping of collaborators, partners, platforms, and key relationships in your business ecosystem.",
+          "why": "Ecosystem mapping reveals hidden opportunities for partnerships and referrals that can accelerate growth."
+        },
+        {
+          "id": "persona-profiles",
+          "name": "Persona Profiles",
+          "description": "Detailed profiles of your ideal buyers, tech partners, and anchor collaborators.",
+          "why": "Clear personas enable targeted messaging and more effective outreach to your ideal clients."
+        },
+        {
+          "id": "pipeline-setup",
+          "name": "Pipeline Setup",
+          "description": "HubSpot-style deal stage configuration and CRM optimization for tracking BD opportunities.",
+          "why": "A well-structured pipeline provides visibility into your sales funnel and helps identify bottlenecks."
+        }
+      ]
+    },
+    {
+      "id": "integrations",
+      "title": "Integrations",
+      "description": "Connect your systems, automate workflows, and create seamless data flows between your tools and platforms.",
+      "deliverables": [
+        {
+          "id": "crm-integration",
+          "name": "CRM Integration",
+          "description": "Connect your CRM with marketing automation, email platforms, and analytics tools.",
+          "why": "Integrated systems eliminate manual data entry and provide a unified view of customer interactions."
+        },
+        {
+          "id": "email-automation",
+          "name": "Email Automation",
+          "description": "Set up nurture sequences, outreach campaigns, and automated follow-ups.",
+          "why": "Automation ensures consistent communication and frees up time for high-value activities."
+        },
+        {
+          "id": "analytics-dashboard",
+          "name": "Analytics Dashboard",
+          "description": "Real-time visibility into key metrics: pipeline health, conversion rates, and channel performance.",
+          "why": "Data-driven decisions require real-time visibility into what's working and what isn't."
+        }
+      ]
+    },
+    {
+      "id": "enrichment",
+      "title": "Enrichment",
+      "description": "Elevate your brand authority through content, case studies, and strategic positioning in your market.",
+      "deliverables": [
+        {
+          "id": "content-library",
+          "name": "Content Library",
+          "description": "Repurpose high-performing content into video, podcast, email, and social assets.",
+          "why": "Content is the foundation of thought leadership and helps establish credibility in your market."
+        },
+        {
+          "id": "case-studies",
+          "name": "Case Study Deck",
+          "description": "Compelling narratives showcasing successful client transformations and outcomes.",
+          "why": "Case studies provide social proof and help prospects visualize the value you deliver."
+        },
+        {
+          "id": "testimonials",
+          "name": "Testimonials Collection",
+          "description": "Curated testimonials from satisfied clients, partners, and collaborators.",
+          "why": "Third-party validation significantly increases conversion rates and builds trust."
+        },
+        {
+          "id": "authority-kit",
+          "name": "Authority Kit",
+          "description": "Best-performing assets packaged for presentations, proposals, and marketing materials.",
+          "why": "A polished authority kit positions you as the expert and accelerates sales cycles."
+        }
+      ]
+    }
+  ],
+  "milestones": [
+    {
+      "week": 1,
+      "label": "Kickoff",
+      "completed": true
+    },
+    {
+      "week": 2,
+      "label": "Assessment",
+      "completed": true
+    },
+    {
+      "week": 3,
+      "label": "Planning",
+      "completed": false
+    },
+    {
+      "week": 4,
+      "label": "Foundation",
+      "completed": false
+    },
+    {
+      "week": 5,
+      "label": "Integration",
+      "completed": false
+    },
+    {
+      "week": 6,
+      "label": "Content",
+      "completed": false
+    },
+    {
+      "week": 7,
+      "label": "Launch",
+      "completed": false
+    },
+    {
+      "week": 8,
+      "label": "Optimize",
+      "completed": false
+    }
+  ],
+  "compensation": {
+    "total": 50000,
+    "currency": "USD",
+    "breakdown": [
+      {
+        "item": "Foundation Phase",
+        "amount": 15000
+      },
+      {
+        "item": "Integrations Phase",
+        "amount": 20000
+      },
+      {
+        "item": "Enrichment Phase",
+        "amount": 15000
+      }
+    ],
+    "paymentSchedule": [
+      {
+        "dueDate": "2024-01-15",
+        "amount": 15000,
+        "label": "Foundation Phase - Initial Payment"
+      },
+      {
+        "dueDate": "2024-04-15",
+        "amount": 20000,
+        "label": "Integrations Phase - Mid-Point Payment"
+      },
+      {
+        "dueDate": "2024-07-15",
+        "amount": 15000,
+        "label": "Enrichment Phase - Final Payment"
+      }
+    ]
+  }
+}
+
