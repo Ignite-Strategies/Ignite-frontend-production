@@ -10,7 +10,7 @@ export default function CompanyProfile() {
     companyStreet: '2604 N. George Mason Dr.',
     companyCity: 'Arlington',
     companyState: 'VA 22207',
-    companyWebsite: 'www.ignitestrategies.co',
+    companyWebsite: 'https://www.ignitestrategies.co',
     yearsInBusiness: '',
     industry: '',
     annualRevenue: '',
@@ -171,16 +171,17 @@ export default function CompanyProfile() {
                 Website
               </label>
               <input
-                type="text"
+                type="url"
                 id="companyWebsite"
                 name="companyWebsite"
                 value={formData.companyWebsite}
                 onChange={handleChange}
                 className="w-full px-3 py-2 bg-white/20 border border-white/30 rounded-lg text-white placeholder-white/60 focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent text-sm"
-                placeholder="www.example.com or https://example.com"
+                placeholder="https://www.example.com"
+                pattern="https?://.*"
               />
               <p className="text-white/60 text-xs mt-2">
-                Used for LinkedIn extraction and data enrichment
+                Enter full URL with https:// (optional field - leave empty if not needed)
               </p>
             </div>
 
