@@ -16,38 +16,43 @@ export default function Signup() {
 
   const handleGoogleSignUp = async () => {
     if (isSigningUp) return;
-    
+
     setIsSigningUp(true);
     try {
       console.log("🚀 Starting signup with Google...");
       const result = await signInWithGoogle();
-      
+
       console.log("✅ Google signup successful:", result);
-      
-      // Call backend findOrCreate
+
+      // Call backend create route (Pattern A - no token needed)
       const firstName = result.name?.split(' ')[0] || '';
-      const lastName = result.name?.split(' ').slice(1).join(' ') || '';
-      
-      const res = await api.post("/adminUserAuth/findOrCreate", {
+      const lastName = result.name?.split(' ').slice(1).join(' ') || '';        
+
+      const res = await api.post("/api/owner/create", {
         firebaseId: result.uid,
         email: result.email,
         firstName,
         lastName,
         photoURL: result.photoURL
       });
-      
-      const admin = res.data;
-      console.log("✅ Admin:", admin.id);
-      
+
+      // Response structure: { success: true, owner: {...} }
+      const owner = res.data.owner;
+      if (!owner) {
+        throw new Error('Owner creation failed - no owner returned');
+      }
+
+      console.log("✅ Owner created/found:", owner.id);
+
       // Store auth data
       localStorage.setItem("firebaseId", result.uid);
-      localStorage.setItem("adminId", admin.id);
-      localStorage.setItem("email", admin.email || result.email);
-      
+      localStorage.setItem("adminId", owner.id);
+      localStorage.setItem("email", owner.email || result.email);
+
       // NEW USER → Profile setup FIRST!
       console.log("✅ New user → Profile setup");
       navigate("/profilesetup");
-      
+
     } catch (error) {
       console.error("❌ Google signup failed:", error);
       alert("Signup failed. Please try again.");
@@ -59,41 +64,46 @@ export default function Signup() {
   const handleEmailSignUp = async (e) => {
     e.preventDefault();
     if (isSigningUp) return;
-    
+
     if (emailData.password !== emailData.confirmPassword) {
       alert("Passwords don't match!");
       return;
     }
-    
+
     setIsSigningUp(true);
     try {
       console.log("🚀 Starting signup with email...");
       const displayName = `${emailData.firstName} ${emailData.lastName}`.trim();
-      const result = await signUpWithEmail(emailData.email, emailData.password, displayName);
-      
+      const result = await signUpWithEmail(emailData.email, emailData.password, displayName);                                                                   
+
       console.log("✅ Email signup successful:", result);
-      
-      // Call backend findOrCreate
-      const res = await api.post("/adminUserAuth/findOrCreate", {
+
+      // Call backend create route (Pattern A - no token needed)
+      const res = await api.post("/api/owner/create", {
         firebaseId: result.uid,
         email: result.email,
         firstName: emailData.firstName,
         lastName: emailData.lastName,
         photoURL: result.photoURL
       });
-      
-      const admin = res.data;
-      console.log("✅ Admin:", admin.id);
-      
+
+      // Response structure: { success: true, owner: {...} }
+      const owner = res.data.owner;
+      if (!owner) {
+        throw new Error('Owner creation failed - no owner returned');
+      }
+
+      console.log("✅ Owner created/found:", owner.id);
+
       // Store auth data
       localStorage.setItem("firebaseId", result.uid);
-      localStorage.setItem("adminId", admin.id);
-      localStorage.setItem("email", admin.email || result.email);
-      
+      localStorage.setItem("adminId", owner.id);
+      localStorage.setItem("email", owner.email || result.email);
+
       // NEW USER → Profile setup FIRST!
       console.log("✅ New user → Profile setup");
       navigate("/profilesetup");
-      
+
     } catch (error) {
       console.error("❌ Email signup failed:", error);
       alert("Signup failed. Please try again.");
