@@ -1,227 +1,120 @@
-import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Upload, Building2, Calendar, FileSpreadsheet, User, ArrowRight } from 'lucide-react';
-import PageHeader from '../../components/PageHeader';
-import { useLocalStorage } from '../../hooks/useLocalStorage';
+import { User } from 'lucide-react';
 
 export default function ContactUpload() {
   const navigate = useNavigate();
-  const [contacts, setContacts] = useLocalStorage('contacts', []);
-  const [selectedType, setSelectedType] = useState('');
-  const [file, setFile] = useState(null);
-  const [uploading, setUploading] = useState(false);
-
-  const uploadTypes = [
-    {
-      id: 'org_members',
-      title: '🏢 Organization Members',
-      description: 'Staff, board, volunteers, core team',
-      icon: <Building2 className="h-8 w-8" />,
-      color: 'indigo',
-      features: ['Detailed Fields', 'Org Structure', 'Team Management'],
-      route: '/contacts/org-members/upload'
-    },
-    {
-      id: 'event_attendees',
-      title: '📅 Event Attendees',
-      description: 'Prospects, participants, registrants',
-      icon: <Calendar className="h-8 w-8" />,
-      color: 'emerald',
-      features: ['Simple Fields', 'Event Pipeline', 'Quick Import'],
-      route: '/contacts/event/upload'
-    }
-  ];
-
-  const handleFileChange = (e) => {
-    const selectedFile = e.target.files[0];
-    if (selectedFile) {
-      if (selectedFile.type === 'text/csv' || selectedFile.name.endsWith('.csv')) {
-        setFile(selectedFile);
-      } else {
-        alert('Please select a CSV file');
-        setFile(null);
-      }
-    }
-  };
-
-  const handleUpload = async () => {
-    if (!file || !selectedType) {
-      alert('Please select a file and contact type');
-      return;
-    }
-
-    setUploading(true);
-    
-    // Mock CSV parsing - in real app, use papaparse or similar
-    try {
-      const text = await file.text();
-      const lines = text.split('\n').filter(line => line.trim());
-      const headers = lines[0].split(',').map(h => h.trim());
-      
-      const newContacts = lines.slice(1).map((line, idx) => {
-        const values = line.split(',').map(v => v.trim());
-        const contact = {};
-        headers.forEach((header, i) => {
-          contact[header.toLowerCase().replace(/\s+/g, '')] = values[i] || '';
-        });
-        
-        return {
-          id: `csv-${Date.now()}-${idx}`,
-          name: contact.name || `${contact.firstname || ''} ${contact.lastname || ''}`.trim(),
-          email: contact.email || '',
-          phone: contact.phone || contact.phone || '',
-          company: contact.company || '',
-          title: contact.title || contact.jobtitle || '',
-          status: contact.status || 'Prospect',
-          stage: contact.stage || 'Prospect',
-          source: 'CSV Upload',
-          uploadedAt: new Date().toISOString(),
-          ...contact
-        };
-      }).filter(c => c.email); // Only contacts with email
-
-      setContacts([...contacts, ...newContacts]);
-      alert(`✅ Successfully uploaded ${newContacts.length} contacts from CSV!`);
-      navigate('/contacts');
-    } catch (error) {
-      console.error('Error parsing CSV:', error);
-      alert('Error parsing CSV file. Please check the format.');
-    } finally {
-      setUploading(false);
-    }
-  };
 
   return (
-    <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-      <PageHeader
-        title="📥 Add Contacts"
-        subtitle="Get started by adding your first contacts to your network"
-        backTo="/growth-dashboard"
-        backLabel="Back to Dashboard"
-      />
-
-      {/* Add Contact Options */}
-      <div className="mb-8">
-        <h2 className="text-2xl font-bold text-gray-900 mb-4">How would you like to add contacts?</h2>
-        <p className="text-gray-600 mb-6">Choose your preferred method</p>
-        
-        {/* Manual Entry Option */}
-        <div className="mb-6">
+    <div className="min-h-screen bg-gray-50 py-8">
+      <div className="max-w-4xl mx-auto px-4">
+        {/* Header */}
+        <div className="mb-8">
           <button
-            onClick={() => navigate('/contacts/manual')}
-            className="w-full p-6 border-2 border-blue-200 rounded-xl hover:border-blue-500 hover:bg-blue-50 transition text-left group"
+            onClick={() => navigate('/growth-dashboard')}
+            className="flex items-center text-gray-600 hover:text-gray-900 mb-4"
           >
-            <div className="flex items-center gap-4">
-              <div className="w-16 h-16 bg-blue-100 rounded-xl flex items-center justify-center group-hover:bg-blue-500 transition text-blue-600 group-hover:text-white">
-                <User className="h-8 w-8" />
-              </div>
-              <div className="flex-1">
-                <h3 className="text-xl font-bold text-gray-900 mb-1">➕ Add Manually</h3>
-                <p className="text-sm text-gray-600">Enter contacts one by one through the form</p>
-              </div>
-              <ArrowRight className="h-6 w-6 text-gray-400 group-hover:text-blue-600" />
-            </div>
+            <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+            </svg>
+            Back to Dashboard
           </button>
-        </div>
-        
-        {/* CSV Upload Option */}
-        <div className="mb-6">
-          <h3 className="text-lg font-semibold text-gray-900 mb-4">Or upload a CSV file</h3>
-          <p className="text-gray-600 mb-4">Choose the type of contacts to help us customize your upload experience</p>
           
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {uploadTypes.map((type) => (
+          <h1 className="text-3xl font-bold text-gray-900 mb-2">
+            📥 Add Contacts
+          </h1>
+          <p className="text-gray-600">
+            Choose how you'd like to add contacts to your network
+          </p>
+        </div>
+
+        {/* Upload Type Selection */}
+        <div className="space-y-6">
+          {/* Manual Entry Option */}
+          <div className="mb-8">
             <button
-              key={type.id}
-              onClick={() => setSelectedType(type.id)}
-              className={`p-8 border-2 rounded-xl hover:bg-${type.color}-50 transition text-left group ${
-                selectedType === type.id
-                  ? `border-${type.color}-500 bg-${type.color}-50`
-                  : `border-${type.color}-200 hover:border-${type.color}-500`
-              }`}
+              onClick={() => navigate('/contacts/manual')}
+              className="w-full p-8 border-2 border-blue-200 rounded-xl hover:border-blue-500 hover:bg-blue-50 transition text-left group"
+            >
+              <div className="flex items-center gap-4">
+                <div className="w-16 h-16 bg-blue-100 rounded-xl flex items-center justify-center group-hover:bg-blue-500 transition">
+                  <User className="h-8 w-8 text-blue-600 group-hover:text-white transition" />
+                </div>
+                <div className="flex-1">
+                  <h3 className="text-xl font-bold text-gray-900 mb-1">➕ Add Manually</h3>
+                  <p className="text-sm text-gray-600">Enter contacts one by one through the form</p>
+                </div>
+                <svg className="w-6 h-6 text-gray-400 group-hover:text-blue-600 transition" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                </svg>
+              </div>
+            </button>
+          </div>
+
+          <div className="text-center">
+            <h2 className="text-2xl font-bold text-gray-900 mb-4">Or upload a CSV file</h2>
+            <p className="text-gray-600 mb-8">Choose the type of contacts to help us customize your upload experience</p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {/* Organization Members */}
+            <button
+              onClick={() => navigate('/contacts/org-members/upload')}
+              className="p-8 border-2 border-indigo-200 rounded-xl hover:border-indigo-500 hover:bg-indigo-50 transition text-left group"
             >
               <div className="flex items-center mb-4">
-                <div className={`w-16 h-16 bg-${type.color}-100 rounded-xl flex items-center justify-center mr-4 group-hover:bg-${type.color}-500 transition text-${type.color}-600 group-hover:text-white`}>
-                  {type.icon}
+                <div className="w-16 h-16 bg-indigo-100 rounded-xl flex items-center justify-center mr-4 group-hover:bg-indigo-500 transition">
+                  <svg className="w-8 h-8 text-indigo-600 group-hover:text-white transition" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+                  </svg>
                 </div>
                 <div>
-                  <h3 className="text-xl font-bold text-gray-900">{type.title}</h3>
-                  <p className="text-sm text-gray-600">{type.description}</p>
+                  <h3 className="text-xl font-bold text-gray-900">🏢 Organization Members</h3>
+                  <p className="text-sm text-gray-600">Staff, board, volunteers, core team</p>
                 </div>
               </div>
-              <p className="text-gray-700 mb-4">
-                {type.id === 'org_members' 
-                  ? 'Upload your internal team with detailed information: roles, departments, contact preferences, and organizational data.'
-                  : 'Quick upload for event participants: just name, email, phone. Map to your event pipeline after upload.'}
+              <p className="text-gray-700">
+                Upload your internal team with detailed information: roles, departments, contact preferences, and organizational data.
               </p>
-              <div className="flex flex-wrap gap-2">
-                {type.features.map((feature, idx) => (
-                  <span key={idx} className={`px-3 py-1 bg-${type.color}-100 text-${type.color}-700 rounded-full text-xs`}>
-                    {feature}
-                  </span>
-                ))}
+              <div className="mt-4 flex flex-wrap gap-2">
+                <span className="px-3 py-1 bg-indigo-100 text-indigo-700 rounded-full text-xs">Detailed Fields</span>
+                <span className="px-3 py-1 bg-indigo-100 text-indigo-700 rounded-full text-xs">Org Structure</span>
+                <span className="px-3 py-1 bg-indigo-100 text-indigo-700 rounded-full text-xs">Team Management</span>
               </div>
             </button>
-          ))}
-          </div>
-        </div>
-      </div>
 
-      {/* File Upload Section */}
-      {selectedType && (
-        <div className="bg-white rounded-xl shadow-lg p-6 mb-6">
-          <h3 className="text-lg font-semibold text-gray-900 mb-4">Upload CSV File</h3>
-          
-          <div className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center hover:border-gray-400 transition-colors mb-4">
-            <FileSpreadsheet className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-            <p className="text-gray-600 mb-2">
-              {file ? file.name : 'Click to upload or drag and drop'}
+            {/* Event Attendees */}
+            <button
+              onClick={() => navigate('/contacts/event/upload')}
+              className="p-8 border-2 border-emerald-200 rounded-xl hover:border-emerald-500 hover:bg-emerald-50 transition text-left group"
+            >
+              <div className="flex items-center mb-4">
+                <div className="w-16 h-16 bg-emerald-100 rounded-xl flex items-center justify-center mr-4 group-hover:bg-emerald-500 transition">
+                  <svg className="w-8 h-8 text-emerald-600 group-hover:text-white transition" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                  </svg>
+                </div>
+                <div>
+                  <h3 className="text-xl font-bold text-gray-900">📅 Event Attendees</h3>
+                  <p className="text-sm text-gray-600">Prospects, participants, registrants</p>
+                </div>
+              </div>
+              <p className="text-gray-700">
+                Quick upload for event participants: just name, email, phone. Map to your event pipeline after upload.
+              </p>
+              <div className="mt-4 flex flex-wrap gap-2">
+                <span className="px-3 py-1 bg-emerald-100 text-emerald-700 rounded-full text-xs">Simple Fields</span>
+                <span className="px-3 py-1 bg-emerald-100 text-emerald-700 rounded-full text-xs">Event Pipeline</span>
+                <span className="px-3 py-1 bg-emerald-100 text-emerald-700 rounded-full text-xs">Quick Import</span>
+              </div>
+            </button>
+          </div>
+
+          <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 text-center">
+            <p className="text-sm text-blue-800">
+              <strong>💡 Not sure?</strong> Organization Members is for your internal team, Event Attendees is for prospects and participants.
             </p>
-            <p className="text-xs text-gray-500 mb-4">CSV files only</p>
-            <label className="inline-block px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 cursor-pointer">
-              <input
-                type="file"
-                accept=".csv"
-                onChange={handleFileChange}
-                className="hidden"
-              />
-              Select File
-            </label>
-          </div>
-
-          {file && (
-            <div className="bg-gray-50 rounded-lg p-4 mb-4">
-              <p className="text-sm font-medium text-gray-900">Selected: {file.name}</p>
-              <p className="text-xs text-gray-600">Size: {(file.size / 1024).toFixed(2)} KB</p>
-            </div>
-          )}
-
-          <div className="flex gap-3">
-            <button
-              onClick={() => navigate('/contacts')}
-              className="px-6 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition"
-            >
-              Cancel
-            </button>
-            <button
-              onClick={handleUpload}
-              disabled={!file || uploading}
-              className="px-6 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              {uploading ? 'Uploading...' : 'Upload Contacts'}
-            </button>
           </div>
         </div>
-      )}
-
-      {/* Help Text */}
-      <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-        <p className="text-sm text-blue-800">
-          <strong>💡 Not sure?</strong> Organization Members is for your internal team, Event Attendees is for prospects and participants.
-        </p>
-        <p className="text-xs text-blue-700 mt-2">
-          CSV format should include: Name, Email, Phone, Company, Title (at minimum)
-        </p>
       </div>
     </div>
   );
