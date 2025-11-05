@@ -211,7 +211,6 @@ function App() {
         <Route path="/insights" element={<Insights />} />
         
         {/* Legacy/Deprecated Routes - kept for backwards compatibility */}
-        <Route path="/companycreateorchoose" element={<CompanyCreateOrChoose />} />
         <Route path="/joincompany" element={<JoinCompany />} />
           <Route path="/cost" element={<Cost />} />
           <Route path="/human" element={<Human />} />
