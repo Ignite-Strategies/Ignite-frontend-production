@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Plus, Edit, MessageSquare, Search, User, Building2 } from 'lucide-react';
+import { Plus, Edit, MessageSquare, Search, User, Building2, Users } from 'lucide-react';
 import api from '../../lib/api';
 
 export default function ContactsHub() {
@@ -26,36 +26,28 @@ export default function ContactsHub() {
     });
   }, []);
 
-  // DON'T fetch contacts yet - route doesn't exist!
-  // TODO: Create /api/contacts route in backend before enabling this
+  // Fetch contacts - route is enabled now!
   useEffect(() => {
-    console.log('🚫 ContactsHub: Contact routes not implemented yet - skipping fetch');
+    console.log('🚀 ContactsHub: Fetching contacts...');
     console.log('📦 ContactsHub: companyHQId from localStorage:', companyHQId);
     
     if (!companyHQId) {
       console.warn('⚠️ ContactsHub: No companyHQId found in localStorage');
       setError('No company found. Please set up your company first.');
+      setLoading(false);
+      return;
     }
-    
-    // Just show empty state - don't try to fetch
-    setLoading(false);
-    setContacts([]);
-    
-    /* 
-    // UNCOMMENT THIS WHEN BACKEND ROUTE IS CREATED:
-    const fetchContacts = async () => {
-      if (!companyHQId) {
-        setLoading(false);
-        setError('No company found. Please set up your company first.');
-        return;
-      }
 
+    const fetchContacts = async () => {
       try {
         setLoading(true);
         setError(null);
         
         const apiUrl = `/api/contacts?companyHQId=${companyHQId}`;
+        console.log('🌐 ContactsHub: Fetching from:', apiUrl);
         const response = await api.get(apiUrl);
+        
+        console.log('✅ ContactsHub: Response:', response.data);
         
         if (response.data.success && response.data.contacts) {
           setContacts(response.data.contacts);
@@ -63,7 +55,10 @@ export default function ContactsHub() {
           setContacts([]);
         }
       } catch (err) {
+        console.error('❌ ContactsHub: Error:', err);
+        // If 404, API route doesn't exist yet - that's okay, show empty state
         if (err.response?.status === 404) {
+          console.log('ℹ️ ContactsHub: API route not implemented yet (404) - showing empty state');
           setContacts([]);
           setError(null);
         } else {
@@ -76,7 +71,6 @@ export default function ContactsHub() {
     };
 
     fetchContacts();
-    */
   }, [companyHQId]);
 
   // Filter contacts by search term
