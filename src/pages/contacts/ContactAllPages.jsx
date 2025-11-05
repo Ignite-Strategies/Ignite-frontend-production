@@ -68,6 +68,30 @@ export default function ContactAllPages() {
       icon: <Users className="h-6 w-6" />,
       color: 'cyan',
       status: 'Active'
+    },
+    {
+      name: 'Companies',
+      route: '/contacts/companies',
+      description: 'Manage prospect/client companies',
+      icon: <Building2 className="h-6 w-6" />,
+      color: 'blue',
+      status: 'Active'
+    },
+    {
+      name: 'DealPipelines',
+      route: '/contacts/deal-pipelines',
+      description: 'Manage deal pipelines and stages',
+      icon: <Filter className="h-6 w-6" />,
+      color: 'purple',
+      status: 'Active'
+    },
+    {
+      name: 'DemoContactList',
+      route: '/contacts/demo-list',
+      description: 'Demo contact list component',
+      icon: <Users className="h-6 w-6" />,
+      color: 'gray',
+      status: 'Active'
     }
   ];
 

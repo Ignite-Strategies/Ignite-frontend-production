@@ -76,6 +76,9 @@ import ContactListView from './pages/contacts/ContactListView';
 import ContactListDetail from './pages/contacts/ContactListDetail';
 import ContactListBuilder from './pages/contacts/ContactListBuilder';
 import ContactManageHome from './pages/contacts/ContactManageHome';
+import Companies from './pages/contacts/Companies';
+import DealPipelines from './pages/contacts/DealPipelines';
+import DemoContactList from './pages/contacts/DemoContactList';
 // Legacy routes - kept for backwards compatibility
 import CompanyCreateOrChoose from './pages/setup/CompanyCreateOrChoose';
 import JoinCompany from './pages/company/JoinCompany';
@@ -179,6 +182,9 @@ function App() {
           <Route path="/contacts/list-detail" element={<ContactListDetail />} />
           <Route path="/contacts/list-builder" element={<ContactListBuilder />} />
           <Route path="/contacts/manage-home" element={<ContactManageHome />} />
+          <Route path="/contacts/companies" element={<Companies />} />
+          <Route path="/contacts/deal-pipelines" element={<DealPipelines />} />
+          <Route path="/contacts/demo-list" element={<DemoContactList />} />
           
           {/* Main Dashboard */}
           <Route path="/growth-dashboard" element={<GrowthDashboard />} />
