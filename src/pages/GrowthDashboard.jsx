@@ -108,47 +108,67 @@ function StackCard({ name, metrics, insight, icon, color, route }) {
 export default function GrowthDashboard() {
   const navigate = useNavigate();
   
-  // Hardcoded dashboard data
+  // Get real company data from localStorage
+  const companyHQ = JSON.parse(localStorage.getItem('companyHQ') || '{}');
+  const owner = JSON.parse(localStorage.getItem('owner') || '{}');
+  
+  // Use real data if available, otherwise show empty state
   const dashboardData = {
-    targetRevenue: 1000000,
-    currentRevenue: 150000,
+    targetRevenue: companyHQ.companyAnnualRev ? companyHQ.companyAnnualRev * 2 : 1000000, // Default to 2x current revenue as target
+    currentRevenue: companyHQ.companyAnnualRev || 0,
     timeHorizon: 12
   };
+  
+  // Show empty state if no company data
+  const hasCompany = companyHQ && companyHQ.id;
 
   // 3-Card offense model - Attract, Engage, Nurture
+  // Use real data when available, otherwise show empty state
   const stackCards = [
     {
       name: "Attract",
-      metrics: [
-        { label: "Upcoming Events", value: "5" },
-        { label: "Ads & SEO Active", value: "3" },
-        { label: "Content Posts", value: "45" }
+      metrics: hasCompany ? [
+        { label: "Upcoming Events", value: "0" },
+        { label: "Ads & SEO Active", value: "0" },
+        { label: "Content Posts", value: "0" }
+      ] : [
+        { label: "Upcoming Events", value: "—" },
+        { label: "Ads & SEO Active", value: "—" },
+        { label: "Content Posts", value: "—" }
       ],
-      insight: "Strong acquisition channels with events, ready to scale",
+      insight: hasCompany ? "Start building your acquisition channels" : "Set up your company to get started",
       icon: <TrendingUp className="h-6 w-6 text-white" />,
       color: "bg-blue-500",
       route: "/attract"
     },
     {
       name: "Engage",
-      metrics: [
-        { label: "Contacts", value: "87" },
-        { label: "Events This Month", value: "8" },
-        { label: "Meetings Scheduled", value: "4" }
+      metrics: hasCompany ? [
+        { label: "Contacts", value: "0" },
+        { label: "Events This Month", value: "0" },
+        { label: "Meetings Scheduled", value: "0" }
+      ] : [
+        { label: "Contacts", value: "—" },
+        { label: "Events This Month", value: "—" },
+        { label: "Meetings Scheduled", value: "—" }
       ],
-      insight: "Active relationship building, strong networking",
+      insight: hasCompany ? "Start adding contacts and building relationships" : "Set up your company to get started",
       icon: <Users className="h-6 w-6 text-white" />,
       color: "bg-orange-500",
-      route: "/persona" // TODO: Update to /engage when created
+      route: "/persona"
     },
     {
       name: "Nurture",
-      metrics: [
-        { label: "Campaigns Active", value: "3" },
-        { label: "Newsletters Sent", value: "12" },
-        { label: "Response Rate", value: "18.5%" }
+      metrics: hasCompany ? [
+        { label: "Campaigns Active", value: "0" },
+        { label: "Newsletters Sent", value: "0" },
+        { label: "Response Rate", value: "0%" }
+      ] : [
+        { label: "Campaigns Active", value: "—" },
+        { label: "Newsletters Sent", value: "—" },
+        { label: "Response Rate", value: "—" }
       ],
-      insight: "Strong email engagement, ready to scale",
+      insight: hasCompany ? "Start nurturing your relationships" : "Set up your company to get started",
       icon: <MessageSquare className="h-6 w-6 text-white" />,
       color: "bg-purple-500",
       route: "/outreach"
@@ -157,6 +177,22 @@ export default function GrowthDashboard() {
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      {/* Welcome Message if no company */}
+      {!hasCompany && (
+        <div className="bg-yellow-50 border-2 border-yellow-200 rounded-xl p-6 mb-8">
+          <h2 className="text-xl font-semibold text-yellow-900 mb-2">Welcome to Ignite Strategies!</h2>
+          <p className="text-yellow-800 mb-4">
+            Set up your company profile to start building customer relationships and maximizing growth.
+          </p>
+          <button
+            onClick={() => navigate('/company/create-or-choose')}
+            className="px-4 py-2 bg-yellow-600 text-white rounded-lg hover:bg-yellow-700 transition"
+          >
+            Set Up Company →
+          </button>
+        </div>
+      )}
+      
       {/* Header Summary */}
       <HeaderSummary 
         targetRevenue={dashboardData.targetRevenue}

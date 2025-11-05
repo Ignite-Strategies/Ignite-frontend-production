@@ -56,8 +56,8 @@ export default function CompanyProfile() {
         localStorage.setItem('companyHQ', JSON.stringify(response.data.companyHQ));
       }
       
-      // Redirect to dashboard
-      navigate('/growth-dashboard');
+      // Redirect to success page
+      navigate('/company/create-success');
       
     } catch (error) {
       console.error('Company creation error:', error);
