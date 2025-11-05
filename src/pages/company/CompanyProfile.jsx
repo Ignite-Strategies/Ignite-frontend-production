@@ -9,7 +9,8 @@ export default function CompanyProfile() {
     address: '',
     yearsInBusiness: '',
     industry: '',
-    annualRevenue: ''
+    annualRevenue: '',
+    teamSize: ''
   });
   const [loading, setLoading] = useState(false);
 
@@ -140,25 +141,48 @@ export default function CompanyProfile() {
               </div>
             </div>
 
-            <div>
-              <label htmlFor="annualRevenue" className="block text-sm font-medium text-white mb-2">
-                Annual Revenue
-              </label>
-              <select
-                id="annualRevenue"
-                name="annualRevenue"
-                value={formData.annualRevenue}
-                onChange={handleChange}
-                className="w-full px-4 py-3 bg-white/20 border border-white/30 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent"
-              >
-                <option value="" className="bg-gray-800">Select revenue range</option>
-                <option value="0-100k" className="bg-gray-800">$0 - $100K</option>
-                <option value="100k-500k" className="bg-gray-800">$100K - $500K</option>
-                <option value="500k-1m" className="bg-gray-800">$500K - $1M</option>
-                <option value="1m-5m" className="bg-gray-800">$1M - $5M</option>
-                <option value="5m-10m" className="bg-gray-800">$5M - $10M</option>
-                <option value="10m+" className="bg-gray-800">$10M+</option>
-              </select>
+            <div className="grid md:grid-cols-2 gap-6">
+              <div>
+                <label htmlFor="annualRevenue" className="block text-sm font-medium text-white mb-2">
+                  Annual Revenue
+                </label>
+                <select
+                  id="annualRevenue"
+                  name="annualRevenue"
+                  value={formData.annualRevenue}
+                  onChange={handleChange}
+                  className="w-full px-4 py-3 bg-white/20 border border-white/30 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent"
+                >
+                  <option value="" className="bg-gray-800">Select revenue range</option>
+                  <option value="0-100k" className="bg-gray-800">$0 - $100K</option>
+                  <option value="100k-500k" className="bg-gray-800">$100K - $500K</option>
+                  <option value="500k-1m" className="bg-gray-800">$500K - $1M</option>
+                  <option value="1m-5m" className="bg-gray-800">$1M - $5M</option>
+                  <option value="5m-10m" className="bg-gray-800">$5M - $10M</option>
+                  <option value="10m+" className="bg-gray-800">$10M+</option>
+                </select>
+              </div>
+
+              <div>
+                <label htmlFor="teamSize" className="block text-sm font-medium text-white mb-2">
+                  Team Size *
+                </label>
+                <select
+                  id="teamSize"
+                  name="teamSize"
+                  value={formData.teamSize}
+                  onChange={handleChange}
+                  className="w-full px-4 py-3 bg-white/20 border border-white/30 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent"
+                  required
+                >
+                  <option value="" className="bg-gray-800">Select team size</option>
+                  <option value="just-me" className="bg-gray-800">Just Me</option>
+                  <option value="2-10" className="bg-gray-800">2-10 People</option>
+                  <option value="11-50" className="bg-gray-800">11-50 People</option>
+                  <option value="51-200" className="bg-gray-800">51-200 People</option>
+                  <option value="200+" className="bg-gray-800">200+ People</option>
+                </select>
+              </div>
             </div>
 
             <div className="flex gap-4 pt-6">

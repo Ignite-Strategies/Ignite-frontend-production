@@ -7,7 +7,6 @@ export default function OwnerIdentitySurvey() {
   const [currentStep, setCurrentStep] = useState(0);
   const [surveyData, setSurveyData] = useState({
     ownerType: '',
-    teamSize: '',
     growthSpeed: '',
     managementStyle: ''
   });
@@ -24,18 +23,6 @@ export default function OwnerIdentitySurvey() {
         { value: 'bd-manager', label: 'BD Manager', icon: '🤝', description: 'I manage partnerships and deals' },
         { value: 'solo', label: 'Solo Operator', icon: '🎯', description: 'I do everything myself' },
         { value: 'explorer', label: 'Just Exploring', icon: '🔍', description: 'I want to see what this can do' }
-      ]
-    },
-    {
-      id: 'teamSize',
-      title: 'How big is your team?',
-      subtitle: 'This helps us customize recommendations',
-      options: [
-        { value: 'just-me', label: 'Just Me', icon: '👤', description: 'Solo operation' },
-        { value: '2-10', label: '2-10 People', icon: '👥', description: 'Small team' },
-        { value: '11-50', label: '11-50 People', icon: '👥👥', description: 'Growing team' },
-        { value: '51-200', label: '51-200 People', icon: '🏢', description: 'Established company' },
-        { value: '200+', label: '200+ People', icon: '🏛️', description: 'Enterprise' }
       ]
     },
     {
@@ -100,9 +87,9 @@ export default function OwnerIdentitySurvey() {
       // Save owner identity survey data
       // This is about owner characteristics, NOT profile data
       // Profile data (name, email, photoURL) comes from Firebase automatically
+      // Team size is collected during company setup, not here
       const response = await api.put(`/api/owner/${ownerId}/survey`, {
         ownerType: surveyData.ownerType,
-        teamSize: surveyData.teamSize,
         growthSpeed: surveyData.growthSpeed,
         managementStyle: surveyData.managementStyle
       });
