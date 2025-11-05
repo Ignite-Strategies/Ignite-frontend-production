@@ -3,8 +3,18 @@ import { useNavigate } from 'react-router-dom';
 
 export default function CompanyCreateSuccess() {
   const navigate = useNavigate();
+  const companyHQ = JSON.parse(localStorage.getItem('companyHQ') || '{}');
+  const companyName = companyHQ?.companyName || 'Your Company';
 
   useEffect(() => {
+    // Verify companyHQId is saved
+    const companyHQId = localStorage.getItem('companyHQId');
+    if (companyHQId) {
+      console.log('✅ CompanyHQId persisted:', companyHQId);
+    } else {
+      console.warn('⚠️ CompanyHQId not found in localStorage');
+    }
+    
     // Auto-redirect to dashboard after 5 seconds
     const timer = setTimeout(() => {
       navigate('/growth-dashboard');
@@ -26,8 +36,11 @@ export default function CompanyCreateSuccess() {
         {/* Success Message */}
         <div className="bg-white/10 backdrop-blur-md rounded-xl shadow-xl p-8 border border-white/20">
           <h1 className="text-4xl font-bold text-white mb-4">Company Created Successfully!</h1>
-          <p className="text-white/80 text-lg mb-8">
-            Your company profile has been set up. You're now ready to start building customer relationships.
+          <p className="text-white/80 text-lg mb-2">
+            <strong>{companyName}</strong> has been set up. You're now ready to start building customer relationships.
+          </p>
+          <p className="text-white/60 text-sm mb-8">
+            Company ID: {localStorage.getItem('companyHQId')?.substring(0, 20)}...
           </p>
 
           {/* Next Steps */}

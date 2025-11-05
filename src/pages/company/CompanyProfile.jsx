@@ -50,10 +50,32 @@ export default function CompanyProfile() {
       
       console.log('✅ CompanyHQ created:', response.data);
       
-      // Store CompanyHQ ID
-      if (response.data.companyHQ?.id) {
-        localStorage.setItem('companyHQId', response.data.companyHQ.id);
-        localStorage.setItem('companyHQ', JSON.stringify(response.data.companyHQ));
+      // Store CompanyHQ data in localStorage
+      if (response.data.companyHQ) {
+        const companyHQ = response.data.companyHQ;
+        localStorage.setItem('companyHQId', companyHQ.id);
+        localStorage.setItem('companyHQ', JSON.stringify(companyHQ));
+        console.log('💾 Saved CompanyHQ to localStorage:', {
+          id: companyHQ.id,
+          name: companyHQ.companyName
+        });
+      }
+      
+      // Also update owner data if available (refresh hydration)
+      try {
+        const hydrateResponse = await api.get('/api/owner/hydrate');
+        if (hydrateResponse.data.success && hydrateResponse.data.owner) {
+          localStorage.setItem('ownerId', hydrateResponse.data.owner.id);
+          localStorage.setItem('owner', JSON.stringify(hydrateResponse.data.owner));
+          if (hydrateResponse.data.owner.companyHQId) {
+            localStorage.setItem('companyHQId', hydrateResponse.data.owner.companyHQId);
+          }
+          if (hydrateResponse.data.owner.companyHQ) {
+            localStorage.setItem('companyHQ', JSON.stringify(hydrateResponse.data.owner.companyHQ));
+          }
+        }
+      } catch (err) {
+        console.warn('Could not refresh owner data:', err);
       }
       
       // Redirect to success page

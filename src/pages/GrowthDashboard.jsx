@@ -13,11 +13,15 @@ function HeaderSummary({ targetRevenue, currentRevenue, timeHorizon, onRoadmapCl
                          'from-red-500 to-red-600';
   
   return (
-    <div className="bg-white rounded-2xl shadow-lg p-8 mb-8">
+      <div className="bg-white rounded-2xl shadow-lg p-8 mb-8">
       <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between mb-6 gap-4">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">Growth Dashboard</h1>
-          <p className="text-gray-600">Your command center for business development</p>
+          <h1 className="text-3xl font-bold text-gray-900 mb-2">
+            {hasCompany ? `${companyName} Growth Dashboard` : 'Growth Dashboard'}
+          </h1>
+          <p className="text-gray-600">
+            {hasCompany ? `Your command center for ${companyName}` : 'Your command center for business development'}
+          </p>
         </div>
         <div className="flex items-center gap-4 flex-wrap">
           <div className="text-right">
@@ -111,17 +115,21 @@ export default function GrowthDashboard() {
   
   // Get real company data from localStorage
   const companyHQ = JSON.parse(localStorage.getItem('companyHQ') || '{}');
+  const companyHQId = localStorage.getItem('companyHQId');
   const owner = JSON.parse(localStorage.getItem('owner') || '{}');
   
+  // Verify companyHQId matches companyHQ.id
+  const hasCompany = companyHQ && companyHQ.id && companyHQId === companyHQ.id;
+  const companyName = companyHQ?.companyName || 'Your Company';
+  
   // Use real data if available, otherwise show empty state
+  // Note: companyAnnualRev is stored as range string (e.g., "0-100k"), not a number
+  // For now, we'll use a default target until we have actual revenue data
   const dashboardData = {
-    targetRevenue: companyHQ.companyAnnualRev ? companyHQ.companyAnnualRev * 2 : 1000000, // Default to 2x current revenue as target
-    currentRevenue: companyHQ.companyAnnualRev || 0,
+    targetRevenue: 1000000, // Default target - will need actual revenue tracking
+    currentRevenue: 0, // Will need actual revenue tracking
     timeHorizon: 12
   };
-  
-  // Show empty state if no company data
-  const hasCompany = companyHQ && companyHQ.id;
 
   // 3-Card offense model - Attract, Engage, Nurture
   // Use real data when available, otherwise show empty state
@@ -178,6 +186,15 @@ export default function GrowthDashboard() {
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      {/* Debug info - remove in production */}
+      {process.env.NODE_ENV === 'development' && (
+        <div className="mb-4 p-2 bg-gray-100 rounded text-xs">
+          <strong>Debug:</strong> companyHQId={companyHQId || 'none'}, 
+          companyHQ.name={companyName}, 
+          hasCompany={hasCompany ? 'true' : 'false'}
+        </div>
+      )}
+      
       {/* Setup Wizard - Show for new companies */}
       {hasCompany && (
         <SetupWizard companyHQ={companyHQ} />
