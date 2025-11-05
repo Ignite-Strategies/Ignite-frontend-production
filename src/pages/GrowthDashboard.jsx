@@ -1,5 +1,5 @@
 import { useNavigate } from 'react-router-dom';
-import { Users, MessageSquare, TrendingUp, Map } from 'lucide-react';
+import { Users, MessageSquare, TrendingUp, Map, Plus, Mail, Filter } from 'lucide-react';
 import SetupWizard from '../components/SetupWizard';
 
 // Note: Using hardcoded values - focus on UX, not calculations
@@ -206,6 +206,51 @@ export default function GrowthDashboard() {
         timeHorizon={dashboardData.timeHorizon}
         onRoadmapClick={() => navigate('/roadmap')}
       />
+
+      {/* Quick Actions */}
+      <div className="bg-white rounded-xl shadow-lg p-6 mb-8">
+        <h3 className="text-lg font-semibold text-gray-900 mb-4">Quick Actions</h3>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <button
+            onClick={() => navigate('/contacts/manual')}
+            className="flex items-center gap-4 p-4 bg-blue-50 border-2 border-blue-200 rounded-lg hover:bg-blue-100 hover:border-blue-300 transition-all text-left group"
+          >
+            <div className="w-12 h-12 bg-blue-500 rounded-lg flex items-center justify-center group-hover:scale-110 transition-transform">
+              <Plus className="h-6 w-6 text-white" />
+            </div>
+            <div>
+              <div className="font-semibold text-gray-900">Add Contact</div>
+              <div className="text-sm text-gray-600">Add a new contact to your network</div>
+            </div>
+          </button>
+
+          <button
+            onClick={() => navigate('/contacts')}
+            className="flex items-center gap-4 p-4 bg-purple-50 border-2 border-purple-200 rounded-lg hover:bg-purple-100 hover:border-purple-300 transition-all text-left group"
+          >
+            <div className="w-12 h-12 bg-purple-500 rounded-lg flex items-center justify-center group-hover:scale-110 transition-transform">
+              <Filter className="h-6 w-6 text-white" />
+            </div>
+            <div>
+              <div className="font-semibold text-gray-900">Check Pipeline</div>
+              <div className="text-sm text-gray-600">View and manage your contact pipeline</div>
+            </div>
+          </button>
+
+          <button
+            onClick={() => navigate('/outreach')}
+            className="flex items-center gap-4 p-4 bg-green-50 border-2 border-green-200 rounded-lg hover:bg-green-100 hover:border-green-300 transition-all text-left group"
+          >
+            <div className="w-12 h-12 bg-green-500 rounded-lg flex items-center justify-center group-hover:scale-110 transition-transform">
+              <Mail className="h-6 w-6 text-white" />
+            </div>
+            <div>
+              <div className="font-semibold text-gray-900">Send Email</div>
+              <div className="text-sm text-gray-600">Send an email to your contacts</div>
+            </div>
+          </button>
+        </div>
+      </div>
 
       {/* Growth Drivers Banner */}
       <div className="flex flex-col items-center mb-8">

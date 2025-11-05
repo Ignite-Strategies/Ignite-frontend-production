@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Upload, Building2, Calendar, FileSpreadsheet } from 'lucide-react';
+import { Upload, Building2, Calendar, FileSpreadsheet, User, ArrowRight } from 'lucide-react';
 import PageHeader from '../../components/PageHeader';
 import { useLocalStorage } from '../../hooks/useLocalStorage';
 
@@ -100,13 +100,37 @@ export default function ContactUpload() {
         backLabel="Back to Contact Management"
       />
 
-      {/* Upload Type Selection */}
+      {/* Add Contact Options */}
       <div className="mb-8">
-        <h2 className="text-2xl font-bold text-gray-900 mb-4">What are you uploading?</h2>
-        <p className="text-gray-600 mb-6">Choose the type of contacts to help us customize your upload experience</p>
+        <h2 className="text-2xl font-bold text-gray-900 mb-4">How would you like to add contacts?</h2>
+        <p className="text-gray-600 mb-6">Choose your preferred method</p>
         
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {uploadTypes.map((type) => (
+        {/* Manual Entry Option */}
+        <div className="mb-6">
+          <button
+            onClick={() => navigate('/contacts/manual')}
+            className="w-full p-6 border-2 border-blue-200 rounded-xl hover:border-blue-500 hover:bg-blue-50 transition text-left group"
+          >
+            <div className="flex items-center gap-4">
+              <div className="w-16 h-16 bg-blue-100 rounded-xl flex items-center justify-center group-hover:bg-blue-500 transition text-blue-600 group-hover:text-white">
+                <User className="h-8 w-8" />
+              </div>
+              <div className="flex-1">
+                <h3 className="text-xl font-bold text-gray-900 mb-1">➕ Add Manually</h3>
+                <p className="text-sm text-gray-600">Enter contacts one by one through the form</p>
+              </div>
+              <ArrowRight className="h-6 w-6 text-gray-400 group-hover:text-blue-600" />
+            </div>
+          </button>
+        </div>
+        
+        {/* CSV Upload Option */}
+        <div className="mb-6">
+          <h3 className="text-lg font-semibold text-gray-900 mb-4">Or upload a CSV file</h3>
+          <p className="text-gray-600 mb-4">Choose the type of contacts to help us customize your upload experience</p>
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {uploadTypes.map((type) => (
             <button
               key={type.id}
               onClick={() => setSelectedType(type.id)}

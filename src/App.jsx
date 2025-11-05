@@ -67,6 +67,9 @@ import Profilesetup from './pages/setup/Profilesetup';
 import OwnerIdentitySurvey from './pages/setup/OwnerIdentitySurvey';
 import CompanyProfile from './pages/company/CompanyProfile';
 import CompanyCreateSuccess from './pages/company/CompanyCreateSuccess';
+import ContactsHub from './pages/contacts/ContactsHub';
+import ContactUpload from './pages/contacts/ContactUpload';
+import ContactManual from './pages/contacts/ContactManual';
 // Legacy routes - kept for backwards compatibility
 import CompanyCreateOrChoose from './pages/setup/CompanyCreateOrChoose';
 import JoinCompany from './pages/company/JoinCompany';
@@ -158,6 +161,11 @@ function App() {
           <Route path="/company/create-or-choose" element={<CompanyCreateOrChoose />} />
           <Route path="/companyprofile" element={<CompanyProfile />} />
           <Route path="/company/create-success" element={<CompanyCreateSuccess />} />
+          
+          {/* Contacts */}
+          <Route path="/contacts" element={<ContactsHub />} />
+          <Route path="/contacts/upload" element={<ContactUpload />} />
+          <Route path="/contacts/manual" element={<ContactManual />} />
           
           {/* Main Dashboard */}
           <Route path="/growth-dashboard" element={<GrowthDashboard />} />
