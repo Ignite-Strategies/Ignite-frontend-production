@@ -5,8 +5,12 @@ import api from '../../lib/api';
 export default function CompanyProfile() {
   const navigate = useNavigate();
   const [formData, setFormData] = useState({
-    name: '',
-    address: '',
+    companyName: 'Ignite Strategies',
+    whatYouDo: 'Business acquisition services for professional service solo founders.',
+    companyStreet: '2604 N. George Mason Dr.',
+    companyCity: 'Arlington',
+    companyState: 'VA 22207',
+    companyWebsite: 'www.ignitestrategies.co',
     yearsInBusiness: '',
     industry: '',
     annualRevenue: '',
@@ -19,22 +23,41 @@ export default function CompanyProfile() {
     setLoading(true);
 
     try {
-      // Get adminId from localStorage
-      const adminId = localStorage.getItem('adminId');
+      // Get ownerId from localStorage
+      const ownerId = localStorage.getItem('ownerId') || localStorage.getItem('adminId');
       
-      // Create company
-      const response = await api.post('/companies', {
-        ...formData,
-        adminId
+      if (!ownerId) {
+        alert('No owner ID found. Please sign up again.');
+        navigate('/signup');
+        return;
+      }
+      
+      // Create CompanyHQ (not Company - CompanyHQ is the tenant container)
+      // Dropdown values: yearsInBusiness, industry, annualRevenue, teamSize are strings
+      const response = await api.post('/api/companyhq/create', {
+        companyName: formData.companyName,
+        whatYouDo: formData.whatYouDo,
+        companyStreet: formData.companyStreet,
+        companyCity: formData.companyCity,
+        companyState: formData.companyState,
+        companyWebsite: formData.companyWebsite,
+        companyIndustry: formData.industry,
+        companyAnnualRev: formData.annualRevenue ? parseFloat(formData.annualRevenue) : null,
+        yearsInBusiness: formData.yearsInBusiness ? parseInt(formData.yearsInBusiness) : null,
+        teamSize: formData.teamSize,
+        ownerId: ownerId
       });
       
-      console.log('Company created:', response.data);
+      console.log('✅ CompanyHQ created:', response.data);
       
-      // Store company ID
-      localStorage.setItem('companyId', response.data.id);
+      // Store CompanyHQ ID
+      if (response.data.companyHQ?.id) {
+        localStorage.setItem('companyHQId', response.data.companyHQ.id);
+        localStorage.setItem('companyHQ', JSON.stringify(response.data.companyHQ));
+      }
       
-      // Redirect to main dashboard
-      navigate('/companydashboard');
+      // Redirect to dashboard
+      navigate('/growth-dashboard');
       
     } catch (error) {
       console.error('Company creation error:', error);
@@ -65,14 +88,14 @@ export default function CompanyProfile() {
         <div className="bg-white/10 backdrop-blur-md rounded-2xl shadow-xl p-8 border border-white/20">
           <form onSubmit={handleSubmit} className="space-y-6">
             <div>
-              <label htmlFor="name" className="block text-sm font-medium text-white mb-2">
+              <label htmlFor="companyName" className="block text-sm font-medium text-white mb-2">
                 Company Name *
               </label>
               <input
                 type="text"
-                id="name"
-                name="name"
-                value={formData.name}
+                id="companyName"
+                name="companyName"
+                value={formData.companyName}
                 onChange={handleChange}
                 className="w-full px-4 py-3 bg-white/20 border border-white/30 rounded-xl text-white placeholder-white/60 focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent"
                 placeholder="Enter your company name"
@@ -81,18 +104,84 @@ export default function CompanyProfile() {
             </div>
 
             <div>
-              <label htmlFor="address" className="block text-sm font-medium text-white mb-2">
-                Address
+              <label htmlFor="whatYouDo" className="block text-sm font-medium text-white mb-2">
+                What You Do *
               </label>
               <textarea
-                id="address"
-                name="address"
-                value={formData.address}
+                id="whatYouDo"
+                name="whatYouDo"
+                value={formData.whatYouDo}
                 onChange={handleChange}
                 rows={3}
                 className="w-full px-4 py-3 bg-white/20 border border-white/30 rounded-xl text-white placeholder-white/60 focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent"
-                placeholder="Enter your company address"
+                placeholder="Describe what your company does"
+                required
               />
+            </div>
+
+            <div>
+              <label htmlFor="companyStreet" className="block text-sm font-medium text-white mb-2">
+                Street Address
+              </label>
+              <input
+                type="text"
+                id="companyStreet"
+                name="companyStreet"
+                value={formData.companyStreet}
+                onChange={handleChange}
+                className="w-full px-4 py-3 bg-white/20 border border-white/30 rounded-xl text-white placeholder-white/60 focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent"
+                placeholder="Street address"
+              />
+            </div>
+
+            <div className="grid md:grid-cols-2 gap-6">
+              <div>
+                <label htmlFor="companyCity" className="block text-sm font-medium text-white mb-2">
+                  City
+                </label>
+                <input
+                  type="text"
+                  id="companyCity"
+                  name="companyCity"
+                  value={formData.companyCity}
+                  onChange={handleChange}
+                  className="w-full px-4 py-3 bg-white/20 border border-white/30 rounded-xl text-white placeholder-white/60 focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent"
+                  placeholder="City"
+                />
+              </div>
+
+              <div>
+                <label htmlFor="companyState" className="block text-sm font-medium text-white mb-2">
+                  State / Zip
+                </label>
+                <input
+                  type="text"
+                  id="companyState"
+                  name="companyState"
+                  value={formData.companyState}
+                  onChange={handleChange}
+                  className="w-full px-4 py-3 bg-white/20 border border-white/30 rounded-xl text-white placeholder-white/60 focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent"
+                  placeholder="State, ZIP"
+                />
+              </div>
+            </div>
+
+            <div>
+              <label htmlFor="companyWebsite" className="block text-sm font-medium text-white mb-2">
+                Website
+              </label>
+              <input
+                type="url"
+                id="companyWebsite"
+                name="companyWebsite"
+                value={formData.companyWebsite}
+                onChange={handleChange}
+                className="w-full px-4 py-3 bg-white/20 border border-white/30 rounded-xl text-white placeholder-white/60 focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent"
+                placeholder="www.example.com"
+              />
+              <p className="text-white/60 text-xs mt-2">
+                Used for LinkedIn extraction and data enrichment
+              </p>
             </div>
 
             <div className="grid md:grid-cols-2 gap-6">
@@ -108,11 +197,11 @@ export default function CompanyProfile() {
                   className="w-full px-4 py-3 bg-white/20 border border-white/30 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent"
                 >
                   <option value="" className="bg-gray-800">Select years</option>
-                  <option value="0-1" className="bg-gray-800">0-1 years</option>
-                  <option value="2-5" className="bg-gray-800">2-5 years</option>
-                  <option value="6-10" className="bg-gray-800">6-10 years</option>
-                  <option value="11-20" className="bg-gray-800">11-20 years</option>
-                  <option value="20+" className="bg-gray-800">20+ years</option>
+                  <option value="0" className="bg-gray-800">0-1 years</option>
+                  <option value="3" className="bg-gray-800">2-5 years</option>
+                  <option value="8" className="bg-gray-800">6-10 years</option>
+                  <option value="15" className="bg-gray-800">11-20 years</option>
+                  <option value="25" className="bg-gray-800">20+ years</option>
                 </select>
               </div>
 
@@ -154,12 +243,12 @@ export default function CompanyProfile() {
                   className="w-full px-4 py-3 bg-white/20 border border-white/30 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent"
                 >
                   <option value="" className="bg-gray-800">Select revenue range</option>
-                  <option value="0-100k" className="bg-gray-800">$0 - $100K</option>
-                  <option value="100k-500k" className="bg-gray-800">$100K - $500K</option>
-                  <option value="500k-1m" className="bg-gray-800">$500K - $1M</option>
-                  <option value="1m-5m" className="bg-gray-800">$1M - $5M</option>
-                  <option value="5m-10m" className="bg-gray-800">$5M - $10M</option>
-                  <option value="10m+" className="bg-gray-800">$10M+</option>
+                  <option value="50000" className="bg-gray-800">$0 - $100K</option>
+                  <option value="300000" className="bg-gray-800">$100K - $500K</option>
+                  <option value="750000" className="bg-gray-800">$500K - $1M</option>
+                  <option value="3000000" className="bg-gray-800">$1M - $5M</option>
+                  <option value="7500000" className="bg-gray-800">$5M - $10M</option>
+                  <option value="15000000" className="bg-gray-800">$10M+</option>
                 </select>
               </div>
 
