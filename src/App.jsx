@@ -70,6 +70,7 @@ import CompanyCreateSuccess from './pages/company/CompanyCreateSuccess';
 import ContactsHub from './pages/contacts/ContactsHub';
 import ContactUpload from './pages/contacts/ContactUpload';
 import ContactManual from './pages/contacts/ContactManual';
+import ContactAllPages from './pages/contacts/ContactAllPages';
 // Legacy routes - kept for backwards compatibility
 import CompanyCreateOrChoose from './pages/setup/CompanyCreateOrChoose';
 import JoinCompany from './pages/company/JoinCompany';
@@ -164,6 +165,7 @@ function App() {
           <Route path="/company/create-success" element={<CompanyCreateSuccess />} />
           
           {/* Contacts */}
+          <Route path="/contacts/all-pages" element={<ContactAllPages />} />
           <Route path="/contacts/upload" element={<ContactUpload />} />
           <Route path="/contacts/manual" element={<ContactManual />} />
           {/* TODO: Add /contacts route after updating contact management architecture */}
@@ -176,8 +178,8 @@ function App() {
           <Route path="/proposals/service-library" element={<ServiceLibrary />} />
           <Route path="/proposals/create" element={<ProposalBuilder />} />
           <Route path="/proposals/edit/:proposalId" element={<ProposalBuilder />} />
-          <Route path="/proposals/:clientId" element={<ProposalPage />} />
           <Route path="/businesspoint-law-proposal" element={<BusinessPointLawProposal />} />
+          <Route path="/proposals/:clientId" element={<ProposalPage />} />
           <Route path="/close-deals" element={<CloseDeals />} />
           <Route path="/assessment-intro" element={<AssessmentIntro />} />
           <Route path="/assessment" element={<Assessment />} />
