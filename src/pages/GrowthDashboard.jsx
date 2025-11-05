@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Users, MessageSquare, TrendingUp, Map, Plus, Mail, Filter } from 'lucide-react';
 import SetupWizard from '../components/SetupWizard';
+import ContactsHub from './contacts/ContactsHub';
 import api from '../lib/api';
 
 // Header Summary Component
@@ -375,6 +376,17 @@ export default function GrowthDashboard() {
           <StackCard key={index} {...card} />
         ))}
       </div>
+
+      {/* DEV: ContactsHub Preview - Remove when ready */}
+      {process.env.NODE_ENV === 'development' && (
+        <div className="mt-12 border-t-4 border-purple-500 pt-8">
+          <div className="mb-4">
+            <h2 className="text-2xl font-bold text-purple-900">🎨 DEV: ContactsHub Preview</h2>
+            <p className="text-sm text-gray-600">Visual inspection only - not wired to route</p>
+          </div>
+          <ContactsHub />
+        </div>
+      )}
     </div>
   );
 }
