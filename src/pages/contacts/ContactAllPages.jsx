@@ -11,7 +11,7 @@ export default function ContactAllPages() {
       description: 'Main contacts hub - list and manage all contacts',
       icon: <Users className="h-6 w-6" />,
       color: 'blue',
-      status: 'Route disabled'
+      status: 'Active'
     },
     {
       name: 'ContactUpload',
