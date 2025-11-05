@@ -268,34 +268,6 @@ export default function GrowthDashboard() {
           <StackCard key={index} {...card} />
         ))}
       </div>
-
-      {/* Quick Actions */}
-      <section className="mt-8">
-        <h3 className="text-lg font-semibold text-gray-900 mb-4">Quick Actions</h3>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <button
-            onClick={() => navigate('/assessment')}
-            className="p-5 bg-red-50 border-2 border-red-200 rounded-xl hover:bg-red-100 hover:border-red-300 transition-all text-left shadow-sm hover:shadow-md"
-          >
-            <div className="text-red-600 font-semibold mb-1 text-base">Start Assessment</div>
-            <div className="text-sm text-gray-600">Complete your growth analysis</div>
-          </button>
-          <button
-            onClick={() => navigate('/revenue')}
-            className="p-5 bg-blue-50 border-2 border-blue-200 rounded-xl hover:bg-blue-100 hover:border-blue-300 transition-all text-left shadow-sm hover:shadow-md"
-          >
-            <div className="text-blue-600 font-semibold mb-1 text-base">Update Revenue</div>
-            <div className="text-sm text-gray-600">Refresh your revenue metrics</div>
-          </button>
-          <button
-            onClick={() => navigate('/settings')}
-            className="p-5 bg-green-50 border-2 border-green-200 rounded-xl hover:bg-green-100 hover:border-green-300 transition-all text-left shadow-sm hover:shadow-md"
-          >
-            <div className="text-green-600 font-semibold mb-1 text-base">Settings</div>
-            <div className="text-sm text-gray-600">Configure your account</div>
-          </button>
-        </div>
-      </section>
     </div>
   );
 }
