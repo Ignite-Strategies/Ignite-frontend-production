@@ -5,7 +5,7 @@ import SetupWizard from '../components/SetupWizard';
 // Note: Using hardcoded values - focus on UX, not calculations
 
 // Header Summary Component
-function HeaderSummary({ targetRevenue, currentRevenue, timeHorizon, onRoadmapClick }) {
+function HeaderSummary({ targetRevenue, currentRevenue, timeHorizon, onRoadmapClick, hasCompany, companyName }) {
   const progressPercent = targetRevenue > 0 ? (currentRevenue / targetRevenue) * 100 : 0;
   const remaining = Math.max(0, targetRevenue - currentRevenue);
   const progressColor = progressPercent >= 75 ? 'from-green-500 to-green-600' : 
@@ -13,7 +13,7 @@ function HeaderSummary({ targetRevenue, currentRevenue, timeHorizon, onRoadmapCl
                          'from-red-500 to-red-600';
   
   return (
-      <div className="bg-white rounded-2xl shadow-lg p-8 mb-8">
+    <div className="bg-white rounded-2xl shadow-lg p-8 mb-8">
       <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between mb-6 gap-4">
         <div>
           <h1 className="text-3xl font-bold text-gray-900 mb-2">
@@ -222,6 +222,8 @@ export default function GrowthDashboard() {
         currentRevenue={dashboardData.currentRevenue}
         timeHorizon={dashboardData.timeHorizon}
         onRoadmapClick={() => navigate('/roadmap')}
+        hasCompany={hasCompany}
+        companyName={companyName}
       />
 
       {/* Quick Actions */}
