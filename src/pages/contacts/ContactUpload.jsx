@@ -94,10 +94,10 @@ export default function ContactUpload() {
   return (
     <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
       <PageHeader
-        title="📥 Upload Contacts"
-        subtitle="Choose the type of contacts you're uploading to get the right experience"
-        backTo="/contacts"
-        backLabel="Back to Contact Management"
+        title="📥 Add Contacts"
+        subtitle="Get started by adding your first contacts to your network"
+        backTo="/growth-dashboard"
+        backLabel="Back to Dashboard"
       />
 
       {/* Add Contact Options */}
