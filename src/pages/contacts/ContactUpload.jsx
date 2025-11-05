@@ -163,6 +163,7 @@ export default function ContactUpload() {
               </div>
             </button>
           ))}
+          </div>
         </div>
       </div>
 
