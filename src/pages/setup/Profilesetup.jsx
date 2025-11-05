@@ -22,8 +22,8 @@ export default function Profilesetup() {
       // Get adminId from localStorage (set during signup/signin)
       const adminId = localStorage.getItem('adminId');
       
-      // Update admin profile with new data
-      const response = await api.put(`/adminUserAuth/${adminId}`, formData);
+      // Update owner profile with new data
+      const response = await api.put(`/api/owner/${adminId}/profile`, formData);
       console.log('Profile updated:', response.data);
       
       // Redirect to company profile (profile → company profile)
