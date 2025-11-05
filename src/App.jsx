@@ -166,10 +166,9 @@ function App() {
           
           {/* Contacts */}
           <Route path="/contacts/all-pages" element={<ContactAllPages />} />
+          <Route path="/contacts" element={<ContactsHub />} />
           <Route path="/contacts/upload" element={<ContactUpload />} />
           <Route path="/contacts/manual" element={<ContactManual />} />
-          {/* TODO: Add /contacts route after updating contact management architecture */}
-          {/* <Route path="/contacts" element={<ContactsHub />} /> */}
           
           {/* Main Dashboard */}
           <Route path="/growth-dashboard" element={<GrowthDashboard />} />
