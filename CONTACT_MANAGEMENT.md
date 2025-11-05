@@ -2,9 +2,18 @@
 
 ## Current Status
 
-**Problem**: ContactsHub is trying to fetch from `/api/contacts` but the backend route doesn't exist yet (404 error).
+**Problem**: ContactsHub was trying to fetch from `/api/contacts` but the backend route **DOESN'T EXIST YET** (404 error).
 
-**Solution**: ContactsHub now gracefully handles 404 errors and shows an empty state instead of an error message.
+**Solution**: 
+- ✅ ContactsHub fetch is **DISABLED** - no hydration attempt
+- ✅ Shows empty state - no errors
+- ✅ Ready to enable when backend route is created
+
+**Backend Routes Defined** (from `index.js`):
+- ✅ `/api/owner/*` - Owner routes
+- ✅ `/api/companyhq/*` - CompanyHQ routes  
+- ✅ `/api/proposals/*` - Proposal routes
+- ❌ `/api/contacts/*` - **NOT DEFINED YET!**
 
 ---
 
