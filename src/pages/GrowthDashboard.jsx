@@ -1,5 +1,6 @@
 import { useNavigate } from 'react-router-dom';
 import { Users, MessageSquare, TrendingUp, Map } from 'lucide-react';
+import SetupWizard from '../components/SetupWizard';
 
 // Note: Using hardcoded values - focus on UX, not calculations
 
@@ -177,6 +178,11 @@ export default function GrowthDashboard() {
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      {/* Setup Wizard - Show for new companies */}
+      {hasCompany && (
+        <SetupWizard companyHQ={companyHQ} />
+      )}
+      
       {/* Welcome Message if no company */}
       {!hasCompany && (
         <div className="bg-yellow-50 border-2 border-yellow-200 rounded-xl p-6 mb-8">
