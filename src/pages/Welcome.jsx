@@ -47,9 +47,19 @@ export default function Welcome() {
         }
 
         // Routing Logic based on what's missing
-        // 1. Check if Owner has name (profile incomplete)
-        if (!owner.name || owner.name.trim() === '') {
-          console.log('⚠️ Missing name → routing to profile setup');
+        // Check profile completeness first - need better indicators
+        // Profile is incomplete if:
+        // - No name at all
+        // - Name is just email prefix (e.g., "adam" from "adam@example.com")
+        // - Name doesn't contain a space (likely just first name or email prefix)
+        const nameIsIncomplete = !owner.name || 
+                                  owner.name.trim() === '' || 
+                                  !owner.name.includes(' ') || 
+                                  owner.name === owner.email?.split('@')[0];
+        
+        if (nameIsIncomplete) {
+          console.log('⚠️ Profile incomplete (name missing/incomplete) → routing to profile setup');
+          console.log('Owner data:', { name: owner.name, email: owner.email });
           navigate('/profilesetup');
           return;
         }

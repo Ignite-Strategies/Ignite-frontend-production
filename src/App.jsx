@@ -152,6 +152,7 @@ function App() {
           
           {/* Onboarding Routes */}
           <Route path="/profilesetup" element={<Profilesetup />} />
+          <Route path="/company/create-or-choose" element={<CompanyCreateOrChoose />} />
           <Route path="/companyprofile" element={<CompanyProfile />} />
           
           {/* Main Dashboard */}
