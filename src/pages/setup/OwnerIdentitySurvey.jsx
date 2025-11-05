@@ -17,7 +17,7 @@ export default function OwnerIdentitySurvey() {
     {
       id: 'ownerType',
       title: 'What type of owner are you?',
-      subtitle: 'Help us understand your role and goals',
+      subtitle: 'Tell us about your role and business identity (not your profile - that comes from Firebase)',
       options: [
         { value: 'founder', label: 'Founder/CEO', icon: '👑', description: 'I built this and lead the vision' },
         { value: 'marketing', label: 'Marketing Leader', icon: '📢', description: 'I focus on growth and outreach' },
@@ -87,19 +87,27 @@ export default function OwnerIdentitySurvey() {
   const handleSubmit = async () => {
     setLoading(true);
     try {
-      // Get adminId from localStorage (set during signup/signin)
-      const adminId = localStorage.getItem('adminId');
+      // Get ownerId from localStorage (set during signup/signin)
+      const ownerId = localStorage.getItem('ownerId') || localStorage.getItem('adminId');
       
-      // Save survey data to owner profile
-      // Note: We'll need to add these fields to Owner model or store in a separate survey table
-      const response = await api.put(`/api/owner/${adminId}/survey`, {
+      if (!ownerId) {
+        console.warn('No ownerId found, storing survey data locally only');
+        localStorage.setItem('ownerSurvey', JSON.stringify(surveyData));
+        navigate('/company/create-or-choose');
+        return;
+      }
+      
+      // Save owner identity survey data
+      // This is about owner characteristics, NOT profile data
+      // Profile data (name, email, photoURL) comes from Firebase automatically
+      const response = await api.put(`/api/owner/${ownerId}/survey`, {
         ownerType: surveyData.ownerType,
         teamSize: surveyData.teamSize,
         growthSpeed: surveyData.growthSpeed,
         managementStyle: surveyData.managementStyle
       });
       
-      console.log('Survey data saved:', response.data);
+      console.log('✅ Owner identity survey saved:', response.data);
       
       // Store in localStorage for quick access
       localStorage.setItem('ownerSurvey', JSON.stringify(surveyData));
@@ -107,8 +115,9 @@ export default function OwnerIdentitySurvey() {
       // Redirect to company setup (survey → company)
       navigate('/company/create-or-choose');
     } catch (error) {
-      console.error('Survey save error:', error);
+      console.error('❌ Survey save error:', error);
       // Even if save fails, continue to company setup
+      // Survey is optional - just store locally
       localStorage.setItem('ownerSurvey', JSON.stringify(surveyData));
       navigate('/company/create-or-choose');
     } finally {
@@ -140,6 +149,12 @@ export default function OwnerIdentitySurvey() {
         {/* Question Card */}
         <div className="bg-white/10 backdrop-blur-md rounded-2xl shadow-xl p-8 border border-white/20">
           <div className="text-center mb-8">
+            <div className="mb-4">
+              <h2 className="text-sm font-semibold text-white/60 uppercase tracking-wide mb-2">Owner Identity Survey</h2>
+              <p className="text-white/70 text-sm mb-4">
+                Your profile (name, email, photo) comes from Firebase. This survey helps us understand your business identity and preferences.
+              </p>
+            </div>
             <h1 className="text-4xl font-bold text-white mb-4">{currentQuestion.title}</h1>
             <p className="text-white/80 text-lg">{currentQuestion.subtitle}</p>
           </div>
@@ -201,8 +216,11 @@ export default function OwnerIdentitySurvey() {
               onClick={() => navigate('/company/create-or-choose')}
               className="text-white/60 hover:text-white transition text-sm underline"
             >
-              Skip for now
+              Skip survey - go to company setup
             </button>
+            <p className="text-white/50 text-xs mt-2">
+              Your profile is already set from Firebase. This survey helps personalize your experience.
+            </p>
           </div>
         )}
       </div>
