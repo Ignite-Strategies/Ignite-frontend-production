@@ -42,8 +42,8 @@ export default function CompanyProfile() {
         companyState: formData.companyState,
         companyWebsite: formData.companyWebsite,
         companyIndustry: formData.industry,
-        companyAnnualRev: formData.annualRevenue ? parseFloat(formData.annualRevenue) : null,
-        yearsInBusiness: formData.yearsInBusiness ? parseInt(formData.yearsInBusiness) : null,
+        companyAnnualRev: formData.annualRevenue || null,  // Store as range string (e.g., "0-100k", "100k-500k")
+        yearsInBusiness: formData.yearsInBusiness || null,  // Store as range string (e.g., "0-1", "2-5")
         teamSize: formData.teamSize,
         ownerId: ownerId
       });
@@ -198,11 +198,11 @@ export default function CompanyProfile() {
                   className="w-full px-3 py-2 bg-white/20 border border-white/30 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent text-sm"
                 >
                   <option value="" className="bg-gray-800">Select years</option>
-                  <option value="0" className="bg-gray-800">0-1 years</option>
-                  <option value="3" className="bg-gray-800">2-5 years</option>
-                  <option value="8" className="bg-gray-800">6-10 years</option>
-                  <option value="15" className="bg-gray-800">11-20 years</option>
-                  <option value="25" className="bg-gray-800">20+ years</option>
+                  <option value="0-1" className="bg-gray-800">0-1 years</option>
+                  <option value="2-5" className="bg-gray-800">2-5 years</option>
+                  <option value="6-10" className="bg-gray-800">6-10 years</option>
+                  <option value="11-20" className="bg-gray-800">11-20 years</option>
+                  <option value="20+" className="bg-gray-800">20+ years</option>
                 </select>
               </div>
 
@@ -244,12 +244,12 @@ export default function CompanyProfile() {
                   className="w-full px-3 py-2 bg-white/20 border border-white/30 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent text-sm"
                 >
                   <option value="" className="bg-gray-800">Select revenue range</option>
-                  <option value="50000" className="bg-gray-800">$0 - $100K</option>
-                  <option value="300000" className="bg-gray-800">$100K - $500K</option>
-                  <option value="750000" className="bg-gray-800">$500K - $1M</option>
-                  <option value="3000000" className="bg-gray-800">$1M - $5M</option>
-                  <option value="7500000" className="bg-gray-800">$5M - $10M</option>
-                  <option value="15000000" className="bg-gray-800">$10M+</option>
+                  <option value="0-100k" className="bg-gray-800">$0 - $100K</option>
+                  <option value="100k-500k" className="bg-gray-800">$100K - $500K</option>
+                  <option value="500k-1m" className="bg-gray-800">$500K - $1M</option>
+                  <option value="1m-5m" className="bg-gray-800">$1M - $5M</option>
+                  <option value="5m-10m" className="bg-gray-800">$5M - $10M</option>
+                  <option value="10m+" className="bg-gray-800">$10M+</option>
                 </select>
               </div>
 
