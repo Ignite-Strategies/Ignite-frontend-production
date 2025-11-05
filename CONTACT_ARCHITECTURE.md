@@ -38,8 +38,10 @@
 
 ### Pipeline/Tracking
 - Pipeline relationship (via Pipeline model)
-- `pipeline` - Pipeline type (prospect, client, etc.)
-- `stage` - Current stage
+- `pipeline` - Pipeline type (string from config: 'prospect', 'client', 'collaborator', 'institution', etc.)
+- `stage` - Current stage (string from config: 'prospect-interest', 'client-onboarding', etc.)
+- **Optional on creation** - Can associate with pipeline during upload/creation
+- **Pipeline config** - Backend defines available pipelines and stages from `pipelineconfig.js` and `stageconfig.js`
 
 ---
 
