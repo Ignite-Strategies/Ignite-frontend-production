@@ -1,8 +1,8 @@
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Users, MessageSquare, TrendingUp, Map, Plus, Mail, Filter } from 'lucide-react';
 import SetupWizard from '../components/SetupWizard';
-
-// Note: Using hardcoded values - focus on UX, not calculations
+import api from '../lib/api';
 
 // Header Summary Component
 function HeaderSummary({ targetRevenue, currentRevenue, timeHorizon, onRoadmapClick, hasCompany, companyName }) {
@@ -113,6 +113,19 @@ function StackCard({ name, metrics, insight, icon, color, route }) {
 export default function GrowthDashboard() {
   const navigate = useNavigate();
   
+  // State for dashboard metrics
+  const [loading, setLoading] = useState(true);
+  const [dashboardMetrics, setDashboardMetrics] = useState({
+    contactCount: 0,
+    prospectCount: 0,
+    clientCount: 0,
+    eventsThisMonth: 0,
+    meetingsScheduled: 0,
+    campaignsActive: 0,
+    newslettersSent: 0,
+    responseRate: 0
+  });
+  
   // Get real company data from localStorage
   const companyHQ = JSON.parse(localStorage.getItem('companyHQ') || '{}');
   const companyHQId = localStorage.getItem('companyHQId');
@@ -122,9 +135,69 @@ export default function GrowthDashboard() {
   const hasCompany = companyHQ && companyHQ.id && companyHQId === companyHQ.id;
   const companyName = companyHQ?.companyName || 'Your Company';
   
+  // Fetch dashboard metrics when component mounts
+  useEffect(() => {
+    const fetchDashboardData = async () => {
+      if (!hasCompany || !companyHQId) {
+        setLoading(false);
+        return;
+      }
+
+      try {
+        setLoading(true);
+        
+        // Try to fetch contacts from API
+        // Note: Contact routes may not exist yet, so we'll gracefully handle errors
+        try {
+          const contactsResponse = await api.get(`/api/contacts?companyId=${companyHQId}`);
+          
+          if (contactsResponse.data.success && contactsResponse.data.contacts) {
+            const contacts = contactsResponse.data.contacts;
+            const contactCount = contacts.length;
+            
+            // Count by pipeline (if Pipeline model is included)
+            const prospectCount = contacts.filter(c => 
+              c.pipeline?.pipeline === 'prospect'
+            ).length;
+            
+            const clientCount = contacts.filter(c => 
+              c.pipeline?.pipeline === 'client'
+            ).length;
+            
+            setDashboardMetrics(prev => ({
+              ...prev,
+              contactCount,
+              prospectCount,
+              clientCount
+            }));
+          }
+        } catch (contactError) {
+          // Contact API may not exist yet - that's okay, we'll use fallback
+          console.log('⚠️ Contact API not available yet, using fallback:', contactError.message);
+          
+          // Fallback: Check if CompanyHQ has contacts from hydration
+          if (companyHQ?.contacts && Array.isArray(companyHQ.contacts)) {
+            const contactCount = companyHQ.contacts.length;
+            setDashboardMetrics(prev => ({
+              ...prev,
+              contactCount
+            }));
+          }
+        }
+        
+      } catch (error) {
+        console.error('❌ Error fetching dashboard data:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchDashboardData();
+  }, [hasCompany, companyHQId, companyHQ]);
+  
   // Use real data if available, otherwise show empty state
   // Note: companyAnnualRev is stored as range string (e.g., "0-100k"), not a number
-  // For now, we'll use a default target until we have actual revenue data
+  // For now, we'll use a default target until we have actual revenue tracking
   const dashboardData = {
     targetRevenue: 1000000, // Default target - will need actual revenue tracking
     currentRevenue: 0, // Will need actual revenue tracking
@@ -153,15 +226,19 @@ export default function GrowthDashboard() {
     {
       name: "Engage",
       metrics: hasCompany ? [
-        { label: "Contacts", value: "0" },
-        { label: "Events This Month", value: "0" },
-        { label: "Meetings Scheduled", value: "0" }
+        { label: "Contacts", value: loading ? "..." : dashboardMetrics.contactCount.toString() },
+        { label: "Events This Month", value: loading ? "..." : dashboardMetrics.eventsThisMonth.toString() },
+        { label: "Meetings Scheduled", value: loading ? "..." : dashboardMetrics.meetingsScheduled.toString() }
       ] : [
         { label: "Contacts", value: "—" },
         { label: "Events This Month", value: "—" },
         { label: "Meetings Scheduled", value: "—" }
       ],
-      insight: hasCompany ? "Start adding contacts and building relationships" : "Set up your company to get started",
+      insight: hasCompany 
+        ? (dashboardMetrics.contactCount > 0 
+          ? "Building relationships with your network" 
+          : "Start adding contacts and building relationships")
+        : "Set up your company to get started",
       icon: <Users className="h-6 w-6 text-white" />,
       color: "bg-orange-500",
       route: "/persona"
@@ -169,15 +246,19 @@ export default function GrowthDashboard() {
     {
       name: "Nurture",
       metrics: hasCompany ? [
-        { label: "Campaigns Active", value: "0" },
-        { label: "Newsletters Sent", value: "0" },
-        { label: "Response Rate", value: "0%" }
+        { label: "Campaigns Active", value: loading ? "..." : dashboardMetrics.campaignsActive.toString() },
+        { label: "Newsletters Sent", value: loading ? "..." : dashboardMetrics.newslettersSent.toString() },
+        { label: "Response Rate", value: loading ? "..." : `${dashboardMetrics.responseRate}%` }
       ] : [
         { label: "Campaigns Active", value: "—" },
         { label: "Newsletters Sent", value: "—" },
         { label: "Response Rate", value: "—" }
       ],
-      insight: hasCompany ? "Start nurturing your relationships" : "Set up your company to get started",
+      insight: hasCompany 
+        ? (dashboardMetrics.campaignsActive > 0 
+          ? "Nurturing relationships with your network" 
+          : "Start nurturing your relationships")
+        : "Set up your company to get started",
       icon: <MessageSquare className="h-6 w-6 text-white" />,
       color: "bg-purple-500",
       route: "/outreach"
@@ -197,7 +278,10 @@ export default function GrowthDashboard() {
       
       {/* Setup Wizard - Show for new companies */}
       {hasCompany && (
-        <SetupWizard companyHQ={companyHQ} />
+        <SetupWizard 
+          companyHQ={companyHQ} 
+          hasContacts={dashboardMetrics.contactCount > 0}
+        />
       )}
       
       {/* Welcome Message if no company */}

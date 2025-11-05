@@ -1,12 +1,11 @@
 import { useNavigate } from 'react-router-dom';
 import { CheckCircle2, Circle, ArrowRight } from 'lucide-react';
 
-export default function SetupWizard({ companyHQ, onComplete }) {
+export default function SetupWizard({ companyHQ, hasContacts = false, onComplete }) {
   const navigate = useNavigate();
   
   // Check what's been completed
   const hasCompany = companyHQ && companyHQ.id;
-  const hasContacts = false; // TODO: Check if contacts exist
   const hasAssessment = false; // TODO: Check if assessment completed
   const hasOutreach = false; // TODO: Check if outreach setup
   
@@ -55,100 +54,78 @@ export default function SetupWizard({ companyHQ, onComplete }) {
   }
   
   return (
-    <div className="bg-gradient-to-br from-blue-50 to-indigo-50 border-2 border-blue-200 rounded-xl p-6 mb-8 shadow-lg">
-      <div className="flex items-center justify-between mb-4">
-        <div>
-          <h2 className="text-2xl font-bold text-gray-900 mb-1">Getting Started</h2>
-          <p className="text-gray-600 text-sm">
-            Complete these steps to maximize your customer relationships
-          </p>
+    <div className="bg-white border border-gray-200 rounded-lg p-4 mb-6 shadow-sm">
+      <div className="flex items-center justify-between mb-3">
+        <div className="flex items-center gap-3">
+          <h2 className="text-base font-semibold text-gray-900">Getting Started</h2>
+          <span className="text-xs text-gray-500">({completedCount}/{totalSteps})</span>
         </div>
-        <div className="text-right">
-          <div className="text-2xl font-bold text-blue-600">{completedCount}/{totalSteps}</div>
-          <div className="text-xs text-gray-500">Complete</div>
-        </div>
-      </div>
-      
-      {/* Progress Bar */}
-      <div className="mb-6">
-        <div className="w-full bg-gray-200 rounded-full h-2 mb-2">
-          <div 
-            className="bg-gradient-to-r from-blue-500 to-indigo-600 h-2 rounded-full transition-all duration-500"
-            style={{ width: `${progressPercent}%` }}
-          ></div>
-        </div>
-        <div className="text-xs text-gray-500 text-center">
-          {progressPercent.toFixed(0)}% Complete
+        {/* Compact Progress Bar */}
+        <div className="flex items-center gap-2">
+          <div className="w-24 bg-gray-200 rounded-full h-1.5">
+            <div 
+              className="bg-blue-600 h-1.5 rounded-full transition-all duration-500"
+              style={{ width: `${progressPercent}%` }}
+            ></div>
+          </div>
         </div>
       </div>
       
-      {/* Steps List */}
-      <div className="space-y-3">
+      {/* Compact Steps - Horizontal or Compact Vertical */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2">
         {steps.map((step, index) => (
-          <div
+          <button
             key={step.id}
-            className={`flex items-center gap-4 p-4 rounded-lg border-2 transition-all ${
+            onClick={() => navigate(step.route)}
+            className={`relative flex items-center gap-2 p-2.5 rounded-md border transition-all text-left group ${
               step.completed
-                ? 'bg-green-50 border-green-200'
+                ? 'bg-green-50 border-green-200 hover:bg-green-100'
                 : index === completedCount
-                ? 'bg-white border-blue-300 shadow-md'
-                : 'bg-white border-gray-200'
+                ? 'bg-blue-50 border-blue-300 hover:bg-blue-100 shadow-sm'
+                : 'bg-gray-50 border-gray-200 hover:bg-gray-100'
             }`}
           >
-            {/* Status Icon */}
+            {/* Status Icon - Smaller */}
             <div className="flex-shrink-0">
               {step.completed ? (
-                <CheckCircle2 className="h-6 w-6 text-green-600" />
+                <CheckCircle2 className="h-4 w-4 text-green-600" />
               ) : (
-                <Circle className="h-6 w-6 text-gray-400" />
+                <Circle className={`h-4 w-4 ${index === completedCount ? 'text-blue-600' : 'text-gray-400'}`} />
               )}
             </div>
             
-            {/* Step Info */}
-            <div className="flex-1">
-              <div className="flex items-center gap-2 mb-1">
-                <h3 className={`font-semibold ${
-                  step.completed ? 'text-green-900' : 'text-gray-900'
+            {/* Step Info - Compact */}
+            <div className="flex-1 min-w-0">
+              <div className="flex items-center gap-1.5">
+                <h3 className={`text-xs font-medium truncate ${
+                  step.completed ? 'text-green-900' : index === completedCount ? 'text-blue-900' : 'text-gray-700'
                 }`}>
                   {step.title}
                 </h3>
                 {index === completedCount && !step.completed && (
-                  <span className="px-2 py-0.5 bg-blue-100 text-blue-700 text-xs font-semibold rounded">
+                  <span className="px-1 py-0.5 bg-blue-200 text-blue-800 text-[10px] font-semibold rounded flex-shrink-0">
                     Next
                   </span>
                 )}
               </div>
-              <p className="text-sm text-gray-600">{step.description}</p>
             </div>
             
-            {/* Action Button */}
-            <button
-              onClick={() => navigate(step.route)}
-              className={`px-4 py-2 rounded-lg font-medium text-sm transition-all flex items-center gap-2 ${
-                step.completed
-                  ? 'bg-green-100 text-green-700 hover:bg-green-200'
-                  : index === completedCount
-                  ? 'bg-blue-600 text-white hover:bg-blue-700 shadow-md'
-                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-              }`}
-            >
-              {step.action}
-              {!step.completed && index === completedCount && (
-                <ArrowRight className="h-4 w-4" />
-              )}
-            </button>
-          </div>
+            {/* Arrow for next step */}
+            {!step.completed && index === completedCount && (
+              <ArrowRight className="h-3 w-3 text-blue-600 flex-shrink-0" />
+            )}
+          </button>
         ))}
       </div>
       
       {/* Dismiss Button (if all complete) */}
       {completedCount === totalSteps && onComplete && (
-        <div className="mt-4 text-center">
+        <div className="mt-3 pt-3 border-t border-gray-200 text-center">
           <button
             onClick={onComplete}
-            className="text-sm text-gray-500 hover:text-gray-700"
+            className="text-xs text-gray-500 hover:text-gray-700"
           >
-            Hide this checklist
+            Hide checklist
           </button>
         </div>
       )}
