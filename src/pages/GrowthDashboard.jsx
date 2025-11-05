@@ -149,7 +149,7 @@ export default function GrowthDashboard() {
         // Try to fetch contacts from API
         // Note: Contact routes may not exist yet, so we'll gracefully handle errors
         try {
-          const contactsResponse = await api.get(`/api/contacts?companyId=${companyHQId}`);
+          const contactsResponse = await api.get(`/api/contacts?companyHQId=${companyHQId}`);
           
           if (contactsResponse.data.success && contactsResponse.data.contacts) {
             const contacts = contactsResponse.data.contacts;

@@ -30,7 +30,7 @@ export default function ContactsHub() {
         setError(null);
         
         // Try to fetch contacts from API
-        const response = await api.get(`/api/contacts?companyId=${companyHQId}`);
+        const response = await api.get(`/api/contacts?companyHQId=${companyHQId}`);
         
         if (response.data.success && response.data.contacts) {
           setContacts(response.data.contacts);
@@ -88,7 +88,7 @@ export default function ContactsHub() {
       
       if (response.data.success) {
         // Refresh contacts list
-        const contactsResponse = await api.get(`/api/contacts?companyId=${companyHQId}`);
+        const contactsResponse = await api.get(`/api/contacts?companyHQId=${companyHQId}`);
         if (contactsResponse.data.success && contactsResponse.data.contacts) {
           setContacts(contactsResponse.data.contacts);
         }
