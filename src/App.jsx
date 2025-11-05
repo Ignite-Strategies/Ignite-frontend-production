@@ -71,6 +71,11 @@ import ContactsHub from './pages/contacts/ContactsHub';
 import ContactUpload from './pages/contacts/ContactUpload';
 import ContactManual from './pages/contacts/ContactManual';
 import ContactAllPages from './pages/contacts/ContactAllPages';
+import ContactListManager from './pages/contacts/ContactListManager';
+import ContactListView from './pages/contacts/ContactListView';
+import ContactListDetail from './pages/contacts/ContactListDetail';
+import ContactListBuilder from './pages/contacts/ContactListBuilder';
+import ContactManageHome from './pages/contacts/ContactManageHome';
 // Legacy routes - kept for backwards compatibility
 import CompanyCreateOrChoose from './pages/setup/CompanyCreateOrChoose';
 import JoinCompany from './pages/company/JoinCompany';
@@ -169,6 +174,11 @@ function App() {
           <Route path="/contacts" element={<ContactsHub />} />
           <Route path="/contacts/upload" element={<ContactUpload />} />
           <Route path="/contacts/manual" element={<ContactManual />} />
+          <Route path="/contacts/list-manager" element={<ContactListManager />} />
+          <Route path="/contacts/list-view" element={<ContactListView />} />
+          <Route path="/contacts/list-detail" element={<ContactListDetail />} />
+          <Route path="/contacts/list-builder" element={<ContactListBuilder />} />
+          <Route path="/contacts/manage-home" element={<ContactManageHome />} />
           
           {/* Main Dashboard */}
           <Route path="/growth-dashboard" element={<GrowthDashboard />} />

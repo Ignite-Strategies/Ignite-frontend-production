@@ -35,7 +35,7 @@ export default function ContactAllPages() {
       description: 'Manage contact lists and groups',
       icon: <List className="h-6 w-6" />,
       color: 'indigo',
-      status: 'Route disabled'
+      status: 'Active'
     },
     {
       name: 'ContactListView',
@@ -43,7 +43,7 @@ export default function ContactAllPages() {
       description: 'View contacts in a specific list',
       icon: <Filter className="h-6 w-6" />,
       color: 'orange',
-      status: 'Route disabled'
+      status: 'Active'
     },
     {
       name: 'ContactListDetail',
@@ -51,7 +51,7 @@ export default function ContactAllPages() {
       description: 'Detailed view of a contact list',
       icon: <Eye className="h-6 w-6" />,
       color: 'pink',
-      status: 'Route disabled'
+      status: 'Active'
     },
     {
       name: 'ContactListBuilder',
@@ -59,7 +59,7 @@ export default function ContactAllPages() {
       description: 'Build and create new contact lists',
       icon: <Building2 className="h-6 w-6" />,
       color: 'teal',
-      status: 'Route disabled'
+      status: 'Active'
     },
     {
       name: 'ContactManageHome',
@@ -67,7 +67,7 @@ export default function ContactAllPages() {
       description: 'Contact management home page',
       icon: <Users className="h-6 w-6" />,
       color: 'cyan',
-      status: 'Route disabled'
+      status: 'Active'
     }
   ];
 
@@ -86,11 +86,8 @@ export default function ContactAllPages() {
   };
 
   const handlePageClick = (page) => {
-    if (page.status === 'Active') {
-      navigate(page.route);
-    } else {
-      alert(`${page.name} route is not active yet. Route: ${page.route}`);
-    }
+    // Navigate to all pages - routes are now enabled for inspection
+    navigate(page.route);
   };
 
   return (
