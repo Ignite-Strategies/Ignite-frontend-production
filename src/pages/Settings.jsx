@@ -1,7 +1,6 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Navigation from '../components/Navigation';
-import PageNav from '../components/PageNav';
 
 export default function Settings() {
   const navigate = useNavigate();
@@ -22,7 +21,6 @@ export default function Settings() {
       <Navigation />
       
       <div className="max-w-6xl mx-auto p-8">
-        <PageNav />
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-gray-900 mb-4">Settings</h1>
           <p className="text-gray-600">Manage your company setup and assessments</p>
