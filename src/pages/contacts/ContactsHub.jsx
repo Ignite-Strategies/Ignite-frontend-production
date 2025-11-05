@@ -1,32 +1,77 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Plus, Edit, MessageSquare, Search, User, Building2 } from 'lucide-react';
-import { useLocalStorage } from '../../hooks/useLocalStorage';
+import api from '../../lib/api';
 
 export default function ContactsHub() {
   const navigate = useNavigate();
-  const [contacts, setContacts] = useLocalStorage('contacts', []);
+  const [contacts, setContacts] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedContact, setSelectedContact] = useState(null);
   const [showUpdateModal, setShowUpdateModal] = useState(false);
   const [formData, setFormData] = useState({});
 
+  // Get companyHQId from localStorage
+  const companyHQId = localStorage.getItem('companyHQId');
+
+  // Fetch contacts from API
+  useEffect(() => {
+    const fetchContacts = async () => {
+      if (!companyHQId) {
+        setLoading(false);
+        setError('No company found. Please set up your company first.');
+        return;
+      }
+
+      try {
+        setLoading(true);
+        setError(null);
+        
+        // Try to fetch contacts from API
+        const response = await api.get(`/api/contacts?companyId=${companyHQId}`);
+        
+        if (response.data.success && response.data.contacts) {
+          setContacts(response.data.contacts);
+        } else {
+          setContacts([]);
+        }
+      } catch (err) {
+        console.error('Error fetching contacts:', err);
+        // If API doesn't exist yet, use empty array
+        setContacts([]);
+        setError('Contacts API not available yet. Please check back later.');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchContacts();
+  }, [companyHQId]);
+
   // Filter contacts by search term
-  const filteredContacts = contacts.filter(contact => {
+  const filteredContacts = (contacts || []).filter(contact => {
     if (!searchTerm) return true;
     const search = searchTerm.toLowerCase();
+    const firstName = contact.firstName || '';
+    const lastName = contact.lastName || '';
+    const fullName = `${firstName} ${lastName}`.toLowerCase();
+    const email = contact.email || '';
+    const companyName = contact.contactCompany?.companyName || '';
+    
     return (
-      contact.name?.toLowerCase().includes(search) ||
-      contact.email?.toLowerCase().includes(search) ||
-      contact.company?.toLowerCase().includes(search)
+      fullName.includes(search) ||
+      email.toLowerCase().includes(search) ||
+      companyName.toLowerCase().includes(search)
     );
   });
 
   const handleUpdate = (contact) => {
     setSelectedContact(contact);
     setFormData({
-      status: contact.status || 'Cold',
-      stage: contact.stage || 'Prospect',
+      status: contact.pipeline?.pipeline || contact.status || 'Cold',
+      stage: contact.pipeline?.stage || contact.stage || 'Prospect',
       lastTouch: contact.lastTouch || new Date().toISOString().split('T')[0],
       nextTouch: contact.nextTouch || '',
       notes: contact.notes || ''
@@ -34,14 +79,32 @@ export default function ContactsHub() {
     setShowUpdateModal(true);
   };
 
-  const handleSaveUpdate = () => {
-    const updated = contacts.map(c => 
-      c.id === selectedContact.id 
-        ? { ...c, ...formData }
-        : c
-    );
-    setContacts(updated);
-    setShowUpdateModal(false);
+  const handleSaveUpdate = async () => {
+    if (!selectedContact || !companyHQId) return;
+
+    try {
+      // Update contact via API
+      const response = await api.put(`/api/contacts/${selectedContact.id}`, formData);
+      
+      if (response.data.success) {
+        // Refresh contacts list
+        const contactsResponse = await api.get(`/api/contacts?companyId=${companyHQId}`);
+        if (contactsResponse.data.success && contactsResponse.data.contacts) {
+          setContacts(contactsResponse.data.contacts);
+        }
+        setShowUpdateModal(false);
+      }
+    } catch (err) {
+      console.error('Error updating contact:', err);
+      // Fallback: update local state if API fails
+      const updated = (contacts || []).map(c => 
+        c.id === selectedContact.id 
+          ? { ...c, ...formData }
+          : c
+      );
+      setContacts(updated);
+      setShowUpdateModal(false);
+    }
   };
 
   const getStatusColor = (status) => {
@@ -53,6 +116,37 @@ export default function ContactsHub() {
     };
     return colors[status] || 'bg-gray-100 text-gray-800';
   };
+
+  // Show loading state
+  if (loading) {
+    return (
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div className="flex items-center justify-center h-64">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+            <p className="text-gray-600">Loading contacts...</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Show error state
+  if (error && !companyHQId) {
+    return (
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div className="bg-yellow-50 border-2 border-yellow-200 rounded-xl p-6 text-center">
+          <p className="text-yellow-800 mb-4">{error}</p>
+          <button
+            onClick={() => navigate('/company/create-or-choose')}
+            className="bg-yellow-600 hover:bg-yellow-700 text-white px-4 py-2 rounded-lg"
+          >
+            Set Up Company
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
@@ -76,6 +170,13 @@ export default function ContactsHub() {
           Add Contact
         </button>
       </div>
+
+      {/* Error message */}
+      {error && (
+        <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-6">
+          <p className="text-sm text-yellow-800">{error}</p>
+        </div>
+      )}
 
       {/* Search/Filter */}
       <div className="mb-6">
@@ -112,31 +213,35 @@ export default function ContactsHub() {
                   <tr key={contact.id} className="hover:bg-gray-50">
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="flex items-center gap-3">
-                        {contact.photoUrl ? (
-                          <img src={contact.photoUrl} alt={contact.name} className="h-8 w-8 rounded-full" />
+                        {contact.photoURL ? (
+                          <img src={contact.photoURL} alt={`${contact.firstName} ${contact.lastName}`} className="h-8 w-8 rounded-full" />
                         ) : (
                           <div className="h-8 w-8 rounded-full bg-blue-100 flex items-center justify-center">
                             <User className="h-4 w-4 text-blue-600" />
                           </div>
                         )}
                         <div>
-                          <p className="text-sm font-medium text-gray-900">{contact.name}</p>
-                          <p className="text-xs text-gray-500">{contact.email}</p>
+                          <p className="text-sm font-medium text-gray-900">
+                            {contact.firstName || contact.lastName 
+                              ? `${contact.firstName || ''} ${contact.lastName || ''}`.trim()
+                              : contact.goesBy || 'Unnamed Contact'}
+                          </p>
+                          <p className="text-xs text-gray-500">{contact.email || '-'}</p>
                         </div>
                       </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="flex items-center gap-2">
                         <Building2 className="h-4 w-4 text-gray-400" />
-                        <span className="text-sm text-gray-900">{contact.company || '-'}</span>
+                        <span className="text-sm text-gray-900">{contact.contactCompany?.companyName || '-'}</span>
                       </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                       {contact.title || '-'}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
-                      <span className={`px-2 py-1 text-xs font-semibold rounded-full ${getStatusColor(contact.status)}`}>
-                        {contact.status}
+                      <span className={`px-2 py-1 text-xs font-semibold rounded-full ${getStatusColor(contact.pipeline?.pipeline || contact.status || 'Cold')}`}>
+                        {contact.pipeline?.pipeline || contact.status || 'Cold'}
                       </span>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
@@ -192,7 +297,13 @@ export default function ContactsHub() {
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-xl shadow-xl max-w-md w-full p-6 max-h-[90vh] overflow-y-auto">
             <h2 className="text-2xl font-bold mb-4">Update Contact</h2>
-            <p className="text-sm text-gray-600 mb-6">{selectedContact.name} - {selectedContact.company}</p>
+            <p className="text-sm text-gray-600 mb-6">
+              {selectedContact.firstName || selectedContact.lastName 
+                ? `${selectedContact.firstName || ''} ${selectedContact.lastName || ''}`.trim()
+                : selectedContact.goesBy || 'Unnamed Contact'}
+              {' - '}
+              {selectedContact.contactCompany?.companyName || selectedContact.company || 'No Company'}
+            </p>
 
             <div className="space-y-4">
               <div>
