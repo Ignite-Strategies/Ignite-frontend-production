@@ -49,9 +49,9 @@ export default function Signup() {
       localStorage.setItem("adminId", owner.id);
       localStorage.setItem("email", owner.email || result.email);
 
-      // NEW USER → Profile setup FIRST!
-      console.log("✅ New user → Profile setup");
-      navigate("/profilesetup");
+      // NEW USER → Owner Identity Survey (optional)
+      console.log("✅ New user → Owner Identity Survey");
+      navigate("/owner-identity-survey");
 
     } catch (error) {
       console.error("❌ Google signup failed:", error);
@@ -100,9 +100,9 @@ export default function Signup() {
       localStorage.setItem("adminId", owner.id);
       localStorage.setItem("email", owner.email || result.email);
 
-      // NEW USER → Profile setup FIRST!
-      console.log("✅ New user → Profile setup");
-      navigate("/profilesetup");
+      // NEW USER → Owner Identity Survey (optional)
+      console.log("✅ New user → Owner Identity Survey");
+      navigate("/owner-identity-survey");
 
     } catch (error) {
       console.error("❌ Email signup failed:", error);

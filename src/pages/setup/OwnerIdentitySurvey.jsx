@@ -1,0 +1,212 @@
+import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import api from '../../lib/api';
+
+export default function OwnerIdentitySurvey() {
+  const navigate = useNavigate();
+  const [currentStep, setCurrentStep] = useState(0);
+  const [surveyData, setSurveyData] = useState({
+    ownerType: '',
+    teamSize: '',
+    growthSpeed: '',
+    managementStyle: ''
+  });
+  const [loading, setLoading] = useState(false);
+
+  const questions = [
+    {
+      id: 'ownerType',
+      title: 'What type of owner are you?',
+      subtitle: 'Help us understand your role and goals',
+      options: [
+        { value: 'founder', label: 'Founder/CEO', icon: '👑', description: 'I built this and lead the vision' },
+        { value: 'marketing', label: 'Marketing Leader', icon: '📢', description: 'I focus on growth and outreach' },
+        { value: 'bd-manager', label: 'BD Manager', icon: '🤝', description: 'I manage partnerships and deals' },
+        { value: 'solo', label: 'Solo Operator', icon: '🎯', description: 'I do everything myself' },
+        { value: 'explorer', label: 'Just Exploring', icon: '🔍', description: 'I want to see what this can do' }
+      ]
+    },
+    {
+      id: 'teamSize',
+      title: 'How big is your team?',
+      subtitle: 'This helps us customize recommendations',
+      options: [
+        { value: 'just-me', label: 'Just Me', icon: '👤', description: 'Solo operation' },
+        { value: '2-10', label: '2-10 People', icon: '👥', description: 'Small team' },
+        { value: '11-50', label: '11-50 People', icon: '👥👥', description: 'Growing team' },
+        { value: '51-200', label: '51-200 People', icon: '🏢', description: 'Established company' },
+        { value: '200+', label: '200+ People', icon: '🏛️', description: 'Enterprise' }
+      ]
+    },
+    {
+      id: 'growthSpeed',
+      title: 'How do you want to grow?',
+      subtitle: 'Your pace preference',
+      options: [
+        { value: 'fast', label: 'Fast & Aggressive', icon: '🚀', description: 'I want to scale quickly' },
+        { value: 'steady', label: 'Steady & Sustainable', icon: '📈', description: 'I prefer steady growth' },
+        { value: 'slow', label: 'Slow & Deliberate', icon: '🐢', description: 'I take my time to get it right' },
+        { value: 'flexible', label: 'Flexible', icon: '🔄', description: 'I adapt as opportunities arise' }
+      ]
+    },
+    {
+      id: 'managementStyle',
+      title: 'How do you operate?',
+      subtitle: 'Your management approach',
+      options: [
+        { value: 'hands-on', label: 'I Do Everything', icon: '✋', description: 'I handle all aspects myself' },
+        { value: 'delegate', label: 'I Delegate', icon: '👔', description: 'I let my team manage operations' },
+        { value: 'collaborative', label: 'Collaborative', icon: '🤲', description: 'I work closely with my team' },
+        { value: 'strategic', label: 'Strategic Only', icon: '🎯', description: 'I focus on strategy, team executes' }
+      ]
+    }
+  ];
+
+  const handleSelect = (value) => {
+    const questionId = questions[currentStep].id;
+    setSurveyData({
+      ...surveyData,
+      [questionId]: value
+    });
+  };
+
+  const handleNext = () => {
+    if (currentStep < questions.length - 1) {
+      setCurrentStep(currentStep + 1);
+    } else {
+      handleSubmit();
+    }
+  };
+
+  const handleBack = () => {
+    if (currentStep > 0) {
+      setCurrentStep(currentStep - 1);
+    }
+  };
+
+  const handleSubmit = async () => {
+    setLoading(true);
+    try {
+      // Get adminId from localStorage (set during signup/signin)
+      const adminId = localStorage.getItem('adminId');
+      
+      // Save survey data to owner profile
+      // Note: We'll need to add these fields to Owner model or store in a separate survey table
+      const response = await api.put(`/api/owner/${adminId}/survey`, {
+        ownerType: surveyData.ownerType,
+        teamSize: surveyData.teamSize,
+        growthSpeed: surveyData.growthSpeed,
+        managementStyle: surveyData.managementStyle
+      });
+      
+      console.log('Survey data saved:', response.data);
+      
+      // Store in localStorage for quick access
+      localStorage.setItem('ownerSurvey', JSON.stringify(surveyData));
+      
+      // Redirect to company setup (survey → company)
+      navigate('/company/create-or-choose');
+    } catch (error) {
+      console.error('Survey save error:', error);
+      // Even if save fails, continue to company setup
+      localStorage.setItem('ownerSurvey', JSON.stringify(surveyData));
+      navigate('/company/create-or-choose');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const currentQuestion = questions[currentStep];
+  const isSelected = surveyData[currentQuestion.id];
+  const progress = ((currentStep + 1) / questions.length) * 100;
+
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-red-600 via-red-700 to-red-800 flex items-center justify-center p-8">
+      <div className="max-w-4xl w-full">
+        {/* Progress Bar */}
+        <div className="mb-8">
+          <div className="flex justify-between items-center mb-2">
+            <span className="text-white/80 text-sm">Question {currentStep + 1} of {questions.length}</span>
+            <span className="text-white/80 text-sm">{Math.round(progress)}%</span>
+          </div>
+          <div className="w-full bg-white/20 rounded-full h-2">
+            <div 
+              className="bg-white rounded-full h-2 transition-all duration-300"
+              style={{ width: `${progress}%` }}
+            />
+          </div>
+        </div>
+
+        {/* Question Card */}
+        <div className="bg-white/10 backdrop-blur-md rounded-2xl shadow-xl p-8 border border-white/20">
+          <div className="text-center mb-8">
+            <h1 className="text-4xl font-bold text-white mb-4">{currentQuestion.title}</h1>
+            <p className="text-white/80 text-lg">{currentQuestion.subtitle}</p>
+          </div>
+
+          {/* Options Grid */}
+          <div className="grid md:grid-cols-2 gap-4 mb-8">
+            {currentQuestion.options.map((option) => {
+              const isSelectedOption = isSelected === option.value;
+              
+              return (
+                <button
+                  key={option.value}
+                  onClick={() => handleSelect(option.value)}
+                  className={`p-6 rounded-xl border-2 transition-all text-left ${
+                    isSelectedOption
+                      ? 'bg-white/20 border-white text-white shadow-lg scale-105'
+                      : 'bg-white/10 border-white/30 text-white/80 hover:bg-white/15 hover:border-white/50'
+                  }`}
+                >
+                  <div className="flex items-start gap-4">
+                    <span className="text-3xl">{option.icon}</span>
+                    <div className="flex-1">
+                      <div className="font-bold text-lg mb-1">{option.label}</div>
+                      <div className="text-sm opacity-80">{option.description}</div>
+                    </div>
+                    {isSelectedOption && (
+                      <div className="text-2xl">✓</div>
+                    )}
+                  </div>
+                </button>
+              );
+            })}
+          </div>
+
+          {/* Navigation Buttons */}
+          <div className="flex gap-4">
+            <button
+              onClick={handleBack}
+              disabled={currentStep === 0}
+              className="flex-1 px-6 py-3 bg-white/10 text-white font-bold rounded-xl hover:bg-white/20 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              ← Back
+            </button>
+            
+            <button
+              onClick={handleNext}
+              disabled={!isSelected || loading}
+              className="flex-1 px-6 py-3 bg-gradient-to-r from-red-600 to-orange-600 text-white font-bold rounded-xl hover:shadow-lg transition-all hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {loading ? 'Saving...' : currentStep === questions.length - 1 ? 'Complete →' : 'Next →'}
+            </button>
+          </div>
+        </div>
+
+        {/* Skip Option */}
+        {currentStep === 0 && (
+          <div className="text-center mt-6">
+            <button
+              onClick={() => navigate('/company/create-or-choose')}
+              className="text-white/60 hover:text-white transition text-sm underline"
+            >
+              Skip for now
+            </button>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+

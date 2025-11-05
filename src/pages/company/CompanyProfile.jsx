@@ -164,7 +164,7 @@ export default function CompanyProfile() {
             <div className="flex gap-4 pt-6">
               <button
                 type="button"
-                onClick={() => navigate('/profilesetup')}
+                onClick={() => navigate('/owner-identity-survey')}
                 className="flex-1 px-6 py-3 bg-white/10 text-white font-bold rounded-xl hover:bg-white/20 transition-all"
               >
                 Back

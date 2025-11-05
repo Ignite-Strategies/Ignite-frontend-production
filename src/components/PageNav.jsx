@@ -15,10 +15,10 @@ const routeNames = {
   'company': 'Company',
   'company/create-or-choose': 'Company Setup',
   'companyprofile': 'Company Profile',
-  'profilesetup': 'Profile Setup'
+  'owner-identity-survey': 'Owner Identity Survey'
 };
 
-export default function Breadcrumb({ customItems }) {
+export default function PageNav({ customItems }) {
   const location = useLocation();
   
   // If custom items provided, use those

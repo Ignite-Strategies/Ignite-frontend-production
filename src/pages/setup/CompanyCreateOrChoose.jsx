@@ -87,10 +87,10 @@ export default function CompanyCreateOrChoose() {
         {/* Back Button */}
         <div className="text-center mt-8">
           <button
-            onClick={() => navigate('/profilesetup')}
+            onClick={() => navigate('/owner-identity-survey')}
             className="text-white/80 hover:text-white transition"
           >
-            ← Back to Profile Setup
+            ← Back to Owner Identity Survey
           </button>
         </div>
       </div>

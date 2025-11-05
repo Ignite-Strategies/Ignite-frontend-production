@@ -45,7 +45,7 @@ export default function Signin() {
       
       // Redirect to profile setup
       console.log("✅ User authenticated → Profile setup");
-      navigate("/profilesetup");
+      navigate("/owner-identity-survey");
       
     } catch (error) {
       console.error("❌ Google sign-in failed:", error);
@@ -89,7 +89,7 @@ export default function Signin() {
       
       // Redirect to profile setup
       console.log("✅ User authenticated → Profile setup");
-      navigate("/profilesetup");
+      navigate("/owner-identity-survey");
       
     } catch (error) {
       console.error("❌ Email sign-in failed:", error);
