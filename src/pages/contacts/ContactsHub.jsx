@@ -15,11 +15,25 @@ export default function ContactsHub() {
 
   // Get companyHQId from localStorage
   const companyHQId = localStorage.getItem('companyHQId');
+  
+  // Debug: Log component mount and localStorage state
+  useEffect(() => {
+    console.log('🚀 ContactsHub: Component mounted');
+    console.log('📦 ContactsHub: localStorage state:', {
+      companyHQId: localStorage.getItem('companyHQId'),
+      companyHQ: localStorage.getItem('companyHQ'),
+      ownerId: localStorage.getItem('ownerId')
+    });
+  }, []);
 
   // Fetch contacts from API
   useEffect(() => {
     const fetchContacts = async () => {
+      console.log('🔍 ContactsHub: Starting fetchContacts...');
+      console.log('🔍 ContactsHub: companyHQId from localStorage:', companyHQId);
+      
       if (!companyHQId) {
+        console.warn('⚠️ ContactsHub: No companyHQId found in localStorage');
         setLoading(false);
         setError('No company found. Please set up your company first.');
         return;
@@ -29,21 +43,47 @@ export default function ContactsHub() {
         setLoading(true);
         setError(null);
         
+        const apiUrl = `/api/contacts?companyHQId=${companyHQId}`;
+        console.log('🌐 ContactsHub: Fetching from API:', apiUrl);
+        
         // Try to fetch contacts from API
-        const response = await api.get(`/api/contacts?companyHQId=${companyHQId}`);
+        const response = await api.get(apiUrl);
+        
+        console.log('✅ ContactsHub: API Response received:', {
+          status: response.status,
+          success: response.data?.success,
+          contactsCount: response.data?.contacts?.length || 0,
+          data: response.data
+        });
         
         if (response.data.success && response.data.contacts) {
+          console.log('✅ ContactsHub: Setting contacts:', response.data.contacts.length);
           setContacts(response.data.contacts);
         } else {
+          console.warn('⚠️ ContactsHub: Response missing success or contacts:', response.data);
           setContacts([]);
         }
       } catch (err) {
-        console.error('Error fetching contacts:', err);
+        console.error('❌ ContactsHub: Error fetching contacts:', err);
+        console.error('❌ ContactsHub: Error details:', {
+          message: err.message,
+          response: err.response?.data,
+          status: err.response?.status,
+          statusText: err.response?.statusText,
+          config: {
+            url: err.config?.url,
+            method: err.config?.method,
+            headers: err.config?.headers
+          }
+        });
+        
         // If API doesn't exist yet, use empty array
         setContacts([]);
-        setError('Contacts API not available yet. Please check back later.');
+        const errorMessage = err.response?.data?.message || err.message || 'Contacts API not available yet. Please check back later.';
+        setError(`Error: ${errorMessage} (Status: ${err.response?.status || 'N/A'})`);
       } finally {
         setLoading(false);
+        console.log('🏁 ContactsHub: Fetch complete');
       }
     };
 
