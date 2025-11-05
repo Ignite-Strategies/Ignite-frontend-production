@@ -33,7 +33,7 @@ export default function CompanyCreateOrChoose() {
         </div>
 
         {/* Join Existing Company - Secondary Option */}
-        <div className="text-center">
+        <div className="text-center mb-6">
           <p className="text-white/60 text-sm mb-4">Already have a company invite?</p>
           <button
             onClick={() => navigate('/joincompany')}
@@ -46,14 +46,17 @@ export default function CompanyCreateOrChoose() {
           </p>
         </div>
 
-        {/* Back Button */}
-        <div className="text-center mt-8">
+        {/* Skip to Dashboard Option */}
+        <div className="text-center">
           <button
-            onClick={() => navigate('/owner-identity-survey')}
-            className="text-white/80 hover:text-white transition"
+            onClick={() => navigate('/growth-dashboard')}
+            className="text-white/60 hover:text-white transition text-sm underline"
           >
-            ← Back to Owner Identity Survey
+            Go straight to dashboard
           </button>
+          <p className="text-white/40 text-xs mt-1 italic">
+            (You'll need to set up your company to start using the tools and services of the platform)
+          </p>
         </div>
       </div>
     </div>
