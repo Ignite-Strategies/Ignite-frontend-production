@@ -63,6 +63,7 @@ import Splash from './pages/Splash';
 import Signup from './pages/auth/Signup';
 import Signin from './pages/auth/Signin';
 import Welcome from './pages/Welcome';
+import Profilesetup from './pages/setup/Profilesetup';
 import OwnerIdentitySurvey from './pages/setup/OwnerIdentitySurvey';
 import CompanyProfile from './pages/company/CompanyProfile';
 // Legacy routes - kept for backwards compatibility
@@ -151,6 +152,7 @@ function App() {
           <Route path="/welcome" element={<Welcome />} />
           
           {/* Onboarding Routes */}
+          <Route path="/profilesetup" element={<Profilesetup />} />
           <Route path="/owner-identity-survey" element={<OwnerIdentitySurvey />} />
           <Route path="/company/create-or-choose" element={<CompanyCreateOrChoose />} />
           <Route path="/companyprofile" element={<CompanyProfile />} />

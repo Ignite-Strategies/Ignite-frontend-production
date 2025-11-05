@@ -49,9 +49,10 @@ export default function Welcome() {
         // Routing Logic based on what's missing
         // Profile check: Does owner have a name? (basic profile requirement)
         // Name comes from Firebase displayName (Google) or user input (email signup)
+        // Fallback: If no name, route to profilesetup (simple name collection)
         if (!owner.name || owner.name.trim() === '') {
-          console.log('⚠️ Missing name → routing to owner identity survey');
-          navigate('/owner-identity-survey');
+          console.log('⚠️ Missing name → routing to profile setup (fallback)');
+          navigate('/profilesetup');
           return;
         }
         
