@@ -333,7 +333,16 @@ export default function GrowthDashboard() {
           </button>
 
           <button
-            onClick={() => navigate('/contacts')}
+            onClick={() => {
+              // Scroll to ContactsHub preview section (dev mode) or navigate when route exists
+              const contactsHubSection = document.getElementById('contacts-hub-preview');
+              if (contactsHubSection) {
+                contactsHubSection.scrollIntoView({ behavior: 'smooth' });
+              } else {
+                // Fallback: navigate when route is enabled
+                navigate('/contacts');
+              }
+            }}
             className="flex items-center gap-4 p-4 bg-purple-50 border-2 border-purple-200 rounded-lg hover:bg-purple-100 hover:border-purple-300 transition-all text-left group"
           >
             <div className="w-12 h-12 bg-purple-500 rounded-lg flex items-center justify-center group-hover:scale-110 transition-transform">
@@ -379,7 +388,7 @@ export default function GrowthDashboard() {
 
       {/* DEV: ContactsHub Preview - Remove when ready */}
       {process.env.NODE_ENV === 'development' && (
-        <div className="mt-12 border-t-4 border-purple-500 pt-8">
+        <div id="contacts-hub-preview" className="mt-12 border-t-4 border-purple-500 pt-8">
           <div className="mb-4">
             <h2 className="text-2xl font-bold text-purple-900">🎨 DEV: ContactsHub Preview</h2>
             <p className="text-sm text-gray-600">Visual inspection only - not wired to route</p>
