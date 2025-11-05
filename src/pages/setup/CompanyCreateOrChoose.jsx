@@ -14,34 +14,19 @@ export default function CompanyCreateOrChoose() {
         </div>
 
         {/* Create New Company - Primary Action */}
-        <div className="bg-white/10 backdrop-blur-md rounded-2xl shadow-xl p-8 border-2 border-white/30 hover:bg-white/15 transition-all cursor-pointer group mb-6"
+        <div className="bg-white/10 backdrop-blur-md rounded-2xl shadow-xl p-6 border-2 border-white/30 hover:bg-white/15 transition-all cursor-pointer group mb-6 max-w-2xl mx-auto"
              onClick={() => navigate('/companyprofile')}>
           <div className="text-center">
-            <div className="w-24 h-24 bg-gradient-to-br from-red-500 to-orange-500 rounded-full flex items-center justify-center mx-auto mb-6 group-hover:scale-110 transition-transform">
-              <span className="text-4xl">🏢</span>
+            <div className="w-16 h-16 bg-gradient-to-br from-red-500 to-orange-500 rounded-full flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-transform">
+              <span className="text-3xl">🏢</span>
             </div>
             
-            <h2 className="text-3xl font-bold text-white mb-4">Create New Company</h2>
-            <p className="text-white/80 mb-6 text-lg">
-              Start fresh with a new company profile. Perfect for founders and new businesses.
+            <h2 className="text-2xl font-bold text-white mb-3">Create Your Company</h2>
+            <p className="text-white/80 mb-6">
+              We need to get your company set up in order to maximize the customer relationships possible that are driven by and through your company.
             </p>
             
-            <div className="space-y-3 text-left max-w-md mx-auto mb-6">
-              <div className="flex items-center gap-3 text-white/80">
-                <span className="text-green-400 text-xl">✓</span>
-                <span>Set up company details</span>
-              </div>
-              <div className="flex items-center gap-3 text-white/80">
-                <span className="text-green-400 text-xl">✓</span>
-                <span>Configure business settings</span>
-              </div>
-              <div className="flex items-center gap-3 text-white/80">
-                <span className="text-green-400 text-xl">✓</span>
-                <span>Invite team members</span>
-              </div>
-            </div>
-            
-            <button className="w-full max-w-md mx-auto px-8 py-4 bg-gradient-to-r from-red-600 to-orange-600 text-white font-bold text-lg rounded-xl hover:shadow-2xl transition-all hover:scale-105">
+            <button className="w-full px-6 py-3 bg-gradient-to-r from-red-600 to-orange-600 text-white font-bold rounded-xl hover:shadow-lg transition-all hover:scale-105">
               Create Company →
             </button>
           </div>
