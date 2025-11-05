@@ -47,31 +47,17 @@ export default function Welcome() {
         }
 
         // Routing Logic based on what's missing
-        // Check profile completeness first - need better indicators
-        // Profile is incomplete if:
-        // - No name at all
-        // - Name is just email prefix (e.g., "adam" from "adam@example.com")
-        // - Name doesn't contain a space (likely just first name or email prefix)
-        const nameIsIncomplete = !owner.name || 
-                                  owner.name.trim() === '' || 
-                                  !owner.name.includes(' ') || 
-                                  owner.name === owner.email?.split('@')[0];
+        // Profile setup is optional - users can add more info in Settings later
+        // Only check for CompanyHQ (required for multi-tenancy)
         
-        if (nameIsIncomplete) {
-          console.log('⚠️ Profile incomplete (name missing/incomplete) → routing to profile setup');
-          console.log('Owner data:', { name: owner.name, email: owner.email });
-          navigate('/profilesetup');
-          return;
-        }
-
-        // 2. Check if Owner has CompanyHQ (no ownedCompanies)
+        // Check if Owner has CompanyHQ (no ownedCompanies)
         if (!owner.companyHQId || !owner.ownedCompanies || owner.ownedCompanies.length === 0) {
           console.log('⚠️ Missing CompanyHQ → routing to company create/choose');
           navigate('/company/create-or-choose');
           return;
         }
 
-        // 3. All complete - route directly to dashboard (perfect scenario)
+        // All complete - route directly to dashboard (perfect scenario)
         console.log('✅ Owner fully hydrated - routing to dashboard');
         navigate('/growth-dashboard');
         return;

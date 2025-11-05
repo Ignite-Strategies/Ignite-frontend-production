@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Navigation from '../components/Navigation';
+import Breadcrumb from '../components/Breadcrumb';
 
 export default function Settings() {
   const navigate = useNavigate();
@@ -21,6 +22,7 @@ export default function Settings() {
       <Navigation />
       
       <div className="max-w-6xl mx-auto p-8">
+        <Breadcrumb />
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-gray-900 mb-4">Settings</h1>
           <p className="text-gray-600">Manage your company setup and assessments</p>
