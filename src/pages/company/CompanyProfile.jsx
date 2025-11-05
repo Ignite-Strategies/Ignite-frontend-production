@@ -171,13 +171,13 @@ export default function CompanyProfile() {
                 Website
               </label>
               <input
-                type="url"
+                type="text"
                 id="companyWebsite"
                 name="companyWebsite"
                 value={formData.companyWebsite}
                 onChange={handleChange}
                 className="w-full px-3 py-2 bg-white/20 border border-white/30 rounded-lg text-white placeholder-white/60 focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent text-sm"
-                placeholder="www.example.com"
+                placeholder="www.example.com or https://example.com"
               />
               <p className="text-white/60 text-xs mt-2">
                 Used for LinkedIn extraction and data enrichment
