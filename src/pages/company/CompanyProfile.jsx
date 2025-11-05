@@ -85,7 +85,7 @@ export default function CompanyProfile() {
         </div>
 
         {/* Company Profile Form */}
-        <div className="bg-white/10 backdrop-blur-md rounded-2xl shadow-xl p-8 border border-white/20">
+        <div className="bg-white/10 backdrop-blur-md rounded-xl shadow-xl p-6 border border-white/20 max-w-2xl mx-auto">
           <form onSubmit={handleSubmit} className="space-y-6">
             <div>
               <label htmlFor="companyName" className="block text-sm font-medium text-white mb-2">
@@ -97,7 +97,7 @@ export default function CompanyProfile() {
                 name="companyName"
                 value={formData.companyName}
                 onChange={handleChange}
-                className="w-full px-4 py-3 bg-white/20 border border-white/30 rounded-xl text-white placeholder-white/60 focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent"
+                className="w-full px-3 py-2 bg-white/20 border border-white/30 rounded-lg text-white placeholder-white/60 focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent text-sm"
                 placeholder="Enter your company name"
                 required
               />
@@ -113,7 +113,7 @@ export default function CompanyProfile() {
                 value={formData.whatYouDo}
                 onChange={handleChange}
                 rows={3}
-                className="w-full px-4 py-3 bg-white/20 border border-white/30 rounded-xl text-white placeholder-white/60 focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent"
+                className="w-full px-3 py-2 bg-white/20 border border-white/30 rounded-lg text-white placeholder-white/60 focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent text-sm"
                 placeholder="Describe what your company does"
                 required
               />
@@ -129,7 +129,7 @@ export default function CompanyProfile() {
                 name="companyStreet"
                 value={formData.companyStreet}
                 onChange={handleChange}
-                className="w-full px-4 py-3 bg-white/20 border border-white/30 rounded-xl text-white placeholder-white/60 focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent"
+                className="w-full px-3 py-2 bg-white/20 border border-white/30 rounded-lg text-white placeholder-white/60 focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent text-sm"
                 placeholder="Street address"
               />
             </div>
@@ -145,7 +145,7 @@ export default function CompanyProfile() {
                   name="companyCity"
                   value={formData.companyCity}
                   onChange={handleChange}
-                  className="w-full px-4 py-3 bg-white/20 border border-white/30 rounded-xl text-white placeholder-white/60 focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent"
+                  className="w-full px-3 py-2 bg-white/20 border border-white/30 rounded-lg text-white placeholder-white/60 focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent text-sm"
                   placeholder="City"
                 />
               </div>
@@ -160,7 +160,7 @@ export default function CompanyProfile() {
                   name="companyState"
                   value={formData.companyState}
                   onChange={handleChange}
-                  className="w-full px-4 py-3 bg-white/20 border border-white/30 rounded-xl text-white placeholder-white/60 focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent"
+                  className="w-full px-3 py-2 bg-white/20 border border-white/30 rounded-lg text-white placeholder-white/60 focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent text-sm"
                   placeholder="State, ZIP"
                 />
               </div>
@@ -176,7 +176,7 @@ export default function CompanyProfile() {
                 name="companyWebsite"
                 value={formData.companyWebsite}
                 onChange={handleChange}
-                className="w-full px-4 py-3 bg-white/20 border border-white/30 rounded-xl text-white placeholder-white/60 focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent"
+                className="w-full px-3 py-2 bg-white/20 border border-white/30 rounded-lg text-white placeholder-white/60 focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent text-sm"
                 placeholder="www.example.com"
               />
               <p className="text-white/60 text-xs mt-2">
@@ -194,7 +194,7 @@ export default function CompanyProfile() {
                   name="yearsInBusiness"
                   value={formData.yearsInBusiness}
                   onChange={handleChange}
-                  className="w-full px-4 py-3 bg-white/20 border border-white/30 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent"
+                  className="w-full px-3 py-2 bg-white/20 border border-white/30 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent text-sm"
                 >
                   <option value="" className="bg-gray-800">Select years</option>
                   <option value="0" className="bg-gray-800">0-1 years</option>
@@ -214,7 +214,7 @@ export default function CompanyProfile() {
                   name="industry"
                   value={formData.industry}
                   onChange={handleChange}
-                  className="w-full px-4 py-3 bg-white/20 border border-white/30 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent"
+                  className="w-full px-3 py-2 bg-white/20 border border-white/30 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent text-sm"
                   required
                 >
                   <option value="" className="bg-gray-800">Select industry</option>
@@ -240,7 +240,7 @@ export default function CompanyProfile() {
                   name="annualRevenue"
                   value={formData.annualRevenue}
                   onChange={handleChange}
-                  className="w-full px-4 py-3 bg-white/20 border border-white/30 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent"
+                  className="w-full px-3 py-2 bg-white/20 border border-white/30 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent text-sm"
                 >
                   <option value="" className="bg-gray-800">Select revenue range</option>
                   <option value="50000" className="bg-gray-800">$0 - $100K</option>
@@ -261,7 +261,7 @@ export default function CompanyProfile() {
                   name="teamSize"
                   value={formData.teamSize}
                   onChange={handleChange}
-                  className="w-full px-4 py-3 bg-white/20 border border-white/30 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent"
+                  className="w-full px-3 py-2 bg-white/20 border border-white/30 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent text-sm"
                   required
                 >
                   <option value="" className="bg-gray-800">Select team size</option>
@@ -274,11 +274,11 @@ export default function CompanyProfile() {
               </div>
             </div>
 
-            <div className="flex gap-4 pt-6">
+            <div className="flex gap-4 pt-4">
               <button
                 type="button"
-                onClick={() => navigate('/owner-identity-survey')}
-                className="flex-1 px-6 py-3 bg-white/10 text-white font-bold rounded-xl hover:bg-white/20 transition-all"
+                onClick={() => navigate('/company/create-or-choose')}
+                className="flex-1 px-4 py-2 bg-white/10 text-white font-medium rounded-lg hover:bg-white/20 transition-all text-sm"
               >
                 Back
               </button>
@@ -286,9 +286,9 @@ export default function CompanyProfile() {
               <button
                 type="submit"
                 disabled={loading}
-                className="flex-1 px-6 py-3 bg-gradient-to-r from-red-600 to-orange-600 text-white font-bold rounded-xl hover:shadow-lg transition-all hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed"
+                className="flex-1 px-4 py-2 bg-gradient-to-r from-red-600 to-orange-600 text-white font-medium rounded-lg hover:shadow-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed text-sm"
               >
-                {loading ? 'Creating Company...' : 'Create Company →'}
+                {loading ? 'Creating...' : 'Create Company →'}
               </button>
             </div>
           </form>
