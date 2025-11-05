@@ -23,8 +23,8 @@ export default function SetupWizard({ companyHQ, hasContacts = false, onComplete
       title: 'Add Your First Contacts',
       description: 'Start building your network',
       completed: hasContacts,
-      route: '/contacts',
-      action: 'Add Contacts'
+      route: hasContacts ? '/contacts' : '/contacts/upload', // Route to upload if no contacts yet
+      action: hasContacts ? 'View Contacts' : 'Add Contacts'
     },
     {
       id: 'assessment',

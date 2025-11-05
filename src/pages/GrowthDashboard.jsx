@@ -315,7 +315,7 @@ export default function GrowthDashboard() {
         <h3 className="text-lg font-semibold text-gray-900 mb-4">Quick Actions</h3>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <button
-            onClick={() => navigate('/contacts/manual')}
+            onClick={() => navigate(hasCompany && dashboardMetrics.contactCount > 0 ? '/contacts' : '/contacts/upload')}
             className="flex items-center gap-4 p-4 bg-blue-50 border-2 border-blue-200 rounded-lg hover:bg-blue-100 hover:border-blue-300 transition-all text-left group"
           >
             <div className="w-12 h-12 bg-blue-500 rounded-lg flex items-center justify-center group-hover:scale-110 transition-transform">
@@ -323,7 +323,11 @@ export default function GrowthDashboard() {
             </div>
             <div>
               <div className="font-semibold text-gray-900">Add Contact</div>
-              <div className="text-sm text-gray-600">Add a new contact to your network</div>
+              <div className="text-sm text-gray-600">
+                {hasCompany && dashboardMetrics.contactCount > 0 
+                  ? 'View and manage your contacts' 
+                  : 'Add your first contact'}
+              </div>
             </div>
           </button>
 
