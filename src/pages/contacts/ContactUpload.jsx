@@ -7,16 +7,47 @@ export default function ContactUpload() {
   const [file, setFile] = useState(null);
   const [uploading, setUploading] = useState(false);
 
-  const handleFileChange = (e) => {
+
+  const handleFileSelect = async (e) => {
     const selectedFile = e.target.files[0];
-    if (selectedFile) {
-      if (selectedFile.type === 'text/csv' || selectedFile.name.endsWith('.csv')) {
-        setFile(selectedFile);
-      } else {
-        alert('Please select a CSV file');
-        setFile(null);
-      }
+    if (!selectedFile) return;
+
+    if (selectedFile.type !== 'text/csv' && !selectedFile.name.endsWith('.csv')) {
+      alert('Please select a CSV file');
+      return;
     }
+
+    setFile(selectedFile);
+
+    // TODO: Parse CSV headers and map to Contact model fields
+    // Pattern from OrgMembersCSVUpload:
+    // 1. Parse file text
+    // 2. Detect headers from first line
+    // 3. Map CSV headers to Contact model fields (firstName, lastName, email, phone, etc.)
+    // 4. Save file + mapping to localStorage for preview/validation page
+    // 5. Navigate to preview page (or validate here)
+    
+    /* 
+    // FUTURE IMPLEMENTATION (when architecture is ready):
+    const text = await selectedFile.text();
+    const lines = text.split('\n').filter(l => l.trim());
+    const detectedHeaders = lines[0].split(',').map(h => h.trim());
+    
+    const fieldMapping = detectedHeaders.map(header => ({
+      csvHeader: header,
+      mappedField: mapHeaderToField(header) // Maps to Contact model fields
+    }));
+    
+    localStorage.setItem('uploadFile', JSON.stringify({
+      name: selectedFile.name,
+      type: selectedFile.type,
+      content: text
+    }));
+    localStorage.setItem('fieldMapping', JSON.stringify(fieldMapping));
+    
+    // Navigate to preview/validation page
+    navigate('/contacts/upload/preview');
+    */
   };
 
   const handleUpload = async () => {
@@ -28,14 +59,58 @@ export default function ContactUpload() {
     setUploading(true);
     
     // TODO: Implement actual CSV upload to backend
+    // 1. Parse CSV with mapped fields
+    // 2. Transform to Contact model format
+    // 3. POST to /api/contacts (bulk create)
+    // 4. Handle errors and validation
+    // 5. Navigate to contacts hub on success
+    
     // For now, just show success message
     setTimeout(() => {
-      alert(`✅ Successfully uploaded ${file.name}!`);
+      alert(`✅ Successfully uploaded ${file.name}! (This is a placeholder - backend upload needed)`);
       setUploading(false);
       setFile(null);
       // Navigate to contacts hub when route exists
       // navigate('/contacts');
     }, 1000);
+  };
+
+  // TODO: Map CSV headers to Contact model fields
+  // Contact model fields: firstName, lastName, goesBy, email, phone, title, contactCompany (companyName)
+  // Pipeline fields: pipeline, stage (optional - can set defaults)
+  const mapHeaderToField = (header) => {
+    const normalized = header.toLowerCase().trim();
+    const fieldMap = {
+      // Name fields
+      'first name': 'firstName',
+      'firstname': 'firstName',
+      'fname': 'firstName',
+      'goes by': 'goesBy',
+      'goesby': 'goesBy',
+      'nickname': 'goesBy',
+      'preferred name': 'goesBy',
+      'last name': 'lastName',
+      'lastname': 'lastName',
+      'lname': 'lastName',
+      // Contact info
+      'email': 'email',
+      'email address': 'email',
+      'phone': 'phone',
+      'phone number': 'phone',
+      'title': 'title',
+      'job title': 'title',
+      'position': 'title',
+      // Company fields (maps to contactCompany.companyName)
+      'company': 'contactCompany',
+      'company name': 'contactCompany',
+      'employer': 'contactCompany',
+      'organization': 'contactCompany',
+      // Pipeline fields (optional)
+      'status': 'status',
+      'pipeline': 'pipeline',
+      'stage': 'stage'
+    };
+    return fieldMap[normalized] || 'unmapped';
   };
 
   const downloadTemplate = () => {
@@ -121,7 +196,7 @@ export default function ContactUpload() {
                   <input
                     type="file"
                     accept=".csv"
-                    onChange={handleFileChange}
+                    onChange={handleFileSelect}
                     className="hidden"
                   />
                   Select CSV File
