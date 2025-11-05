@@ -77,10 +77,18 @@ export default function ContactsHub() {
           }
         });
         
-        // If API doesn't exist yet, use empty array
-        setContacts([]);
-        const errorMessage = err.response?.data?.message || err.message || 'Contacts API not available yet. Please check back later.';
-        setError(`Error: ${errorMessage} (Status: ${err.response?.status || 'N/A'})`);
+        // If API doesn't exist yet (404), just use empty array - don't show error
+        // This is expected behavior until contact routes are implemented
+        if (err.response?.status === 404) {
+          console.log('ℹ️ ContactsHub: API route not implemented yet (404) - showing empty state');
+          setContacts([]);
+          setError(null); // Don't show error for 404 - just empty state
+        } else {
+          // For other errors, show error message
+          setContacts([]);
+          const errorMessage = err.response?.data?.message || err.message || 'Failed to load contacts.';
+          setError(`Error: ${errorMessage} (Status: ${err.response?.status || 'N/A'})`);
+        }
       } finally {
         setLoading(false);
         console.log('🏁 ContactsHub: Fetch complete');
