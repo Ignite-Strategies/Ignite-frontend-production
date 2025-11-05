@@ -47,10 +47,16 @@ export default function Welcome() {
         }
 
         // Routing Logic based on what's missing
-        // Profile setup is optional - users can add more info in Settings later
-        // Only check for CompanyHQ (required for multi-tenancy)
+        // Profile check: Does owner have a name? (basic profile requirement)
+        // Name comes from Firebase displayName (Google) or user input (email signup)
+        if (!owner.name || owner.name.trim() === '') {
+          console.log('⚠️ Missing name → routing to owner identity survey');
+          navigate('/owner-identity-survey');
+          return;
+        }
         
         // Check if Owner has CompanyHQ (no ownedCompanies)
+        // CompanyHQ is required for multi-tenancy - everything scoped to CompanyHQId
         if (!owner.companyHQId || !owner.ownedCompanies || owner.ownedCompanies.length === 0) {
           console.log('⚠️ Missing CompanyHQ → routing to company create/choose');
           navigate('/company/create-or-choose');
