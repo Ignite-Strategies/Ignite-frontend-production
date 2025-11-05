@@ -62,9 +62,11 @@
    - Company has its own `companyHQId` (same tenant)
    - After Company upsert, link Contact to Company via `companyId`
 
-4. **Pipeline Association**
-   - Optionally create Pipeline record for contact
-   - Link via `contactId`
+4. **Pipeline Association (Optional)**
+   - If pipeline provided, create/upsert Pipeline record
+   - Pipeline types from config: 'prospect', 'client', 'collaborator', 'institution', etc.
+   - Stage from config: Must be valid stage for selected pipeline
+   - Link via `contactId` (one Pipeline per Contact)
 
 ---
 
@@ -120,6 +122,14 @@ POST   /api/contacts/upload       → Bulk upload contacts (CSV)
                                      - Upserts contacts (with companyHQId)
                                      - Upserts companies separately
                                      - Links contacts to companies
+                                     - Optionally creates Pipeline records if pipeline/stage provided
+```
+
+### Pipeline Configuration Endpoint
+```
+GET    /api/pipelines/config      → Get available pipeline types and stages
+                                     Returns: { pipelines: { pipelineType: [stages] } }
+                                     Example: { pipelines: { prospect: ['interest', 'meeting', ...], client: ['onboarding', ...] } }
 ```
 
 ---
@@ -127,13 +137,15 @@ POST   /api/contacts/upload       → Bulk upload contacts (CSV)
 ## Frontend Implementation
 
 ### ContactUpload Component
-- CSV template: `First Name, Last Name, Email, Phone, Company, Title`
+- CSV template: `First Name, Last Name, Email, Phone, Company, Title, Pipeline, Stage`
+- Pipeline/Stage fields are optional
 - On upload:
   1. Parse CSV
   2. Map fields to Contact model
   3. Add `companyHQId` from localStorage
-  4. POST to `/api/contacts/upload` (bulk)
-  5. Backend handles company upsert and linking
+  4. Fetch pipeline config: `GET /api/pipelines/config` (to validate pipeline/stage)
+  5. POST to `/api/contacts/upload` (bulk)
+  6. Backend handles company upsert, linking, and pipeline creation
 
 ### ContactsHub Component
 - Fetches contacts: `GET /api/contacts?companyHQId=xxx`
@@ -146,11 +158,16 @@ POST   /api/contacts/upload       → Bulk upload contacts (CSV)
 
 1. **Backend**: Create Contact model with `companyHQId` field
 2. **Backend**: Create Company model with `companyHQId` field
-3. **Backend**: Implement Contact routes (POST, GET, PUT)
-4. **Backend**: Implement Company upsert logic (separate from contact)
-5. **Backend**: Create bulk upload endpoint `/api/contacts/upload`
-6. **Frontend**: Wire up ContactUpload to backend API
-7. **Frontend**: Update ContactsHub to display real data
+3. **Backend**: Create Pipeline model with `contactId`, `pipeline`, `stage` fields
+4. **Backend**: Implement Pipeline config endpoint `GET /api/pipelines/config`
+5. **Backend**: Implement Contact routes (POST, GET, PUT)
+6. **Backend**: Implement Company upsert logic (separate from contact)
+7. **Backend**: Implement Pipeline creation/update logic (optional on contact creation)
+8. **Backend**: Create bulk upload endpoint `/api/contacts/upload` with pipeline support
+9. **Frontend**: Fetch pipeline config on ContactUpload page
+10. **Frontend**: Add pipeline/stage dropdowns to CSV template and upload UI
+11. **Frontend**: Wire up ContactUpload to backend API
+12. **Frontend**: Update ContactsHub to display real data with pipeline info
 
 ---
 
