@@ -118,6 +118,7 @@ import BDPipelineRoadmap from './pages/bd-gen/BDPipelineRoadmap';
 import Personas from './pages/personas/Personas';
 import PersonaBuilder from './pages/personas/PersonaBuilder';
 import CloseDeals from './pages/proposals/CloseDeals';
+import BusinessPointLawProposal from './pages/proposals/BusinessPointLawProposal';
 import MeetingDashboard from './pages/meetings/MeetingDashboard';
 import MeetingFeedbackForm from './pages/meetings/MeetingFeedbackForm';
 import Insights from './pages/Insights';
@@ -163,9 +164,10 @@ function App() {
           <Route path="/company/create-success" element={<CompanyCreateSuccess />} />
           
           {/* Contacts */}
-          <Route path="/contacts" element={<ContactsHub />} />
           <Route path="/contacts/upload" element={<ContactUpload />} />
           <Route path="/contacts/manual" element={<ContactManual />} />
+          {/* TODO: Add /contacts route after updating contact management architecture */}
+          {/* <Route path="/contacts" element={<ContactsHub />} /> */}
           
           {/* Main Dashboard */}
           <Route path="/growth-dashboard" element={<GrowthDashboard />} />
@@ -175,6 +177,7 @@ function App() {
           <Route path="/proposals/create" element={<ProposalBuilder />} />
           <Route path="/proposals/edit/:proposalId" element={<ProposalBuilder />} />
           <Route path="/proposals/:clientId" element={<ProposalPage />} />
+          <Route path="/businesspoint-law-proposal" element={<BusinessPointLawProposal />} />
           <Route path="/close-deals" element={<CloseDeals />} />
           <Route path="/assessment-intro" element={<AssessmentIntro />} />
           <Route path="/assessment" element={<Assessment />} />

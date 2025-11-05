@@ -241,7 +241,7 @@ export default function GrowthDashboard() {
         : "Set up your company to get started",
       icon: <Users className="h-6 w-6 text-white" />,
       color: "bg-orange-500",
-      route: "/persona"
+      route: "/contacts"
     },
     {
       name: "Nurture",
@@ -339,7 +339,7 @@ export default function GrowthDashboard() {
               <Filter className="h-6 w-6 text-white" />
             </div>
             <div>
-              <div className="font-semibold text-gray-900">Check Pipeline</div>
+              <div className="font-semibold text-gray-900">View Contacts</div>
               <div className="text-sm text-gray-600">View and manage your contact pipeline</div>
             </div>
           </button>
