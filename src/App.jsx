@@ -14,6 +14,45 @@ function ScrollToTop() {
   return null;
 }
 
+// Routes that should show the sidebar (dashboard and main app pages)
+const routesWithSidebar = [
+  '/growth-dashboard',
+  '/companydashboard',
+  '/proposals',
+  '/close-deals',
+  '/assessment',
+  '/assessment-intro',
+  '/assessment-results',
+  '/revenue',
+  '/revenue-total-outlook',
+  '/human-capital',
+  '/human-capital-total-outlook',
+  '/target-acquisition',
+  '/bd-assessment-total-outlook',
+  '/setup/ecosystem',
+  '/persona',
+  '/personas',
+  '/bdpipeline',
+  '/ads',
+  '/attract',
+  '/seo',
+  '/content',
+  '/branding-hub',
+  '/events',
+  '/outreach',
+  '/meetings',
+  '/growth-cost-outlook',
+  '/revenue-target-outlook',
+  '/bd-baseline-assessment',
+  '/bd-baseline-results',
+  '/settings',
+  '/roadmap',
+  '/insights',
+  '/contacts',
+  '/relationship',
+  '/nurture'
+];
+
 // Pages
 import ProposalPage from './pages/proposals/ProposalPage';
 import ProposalsList from './pages/proposals/ProposalsList';
@@ -23,6 +62,7 @@ import AssessmentIntro from './pages/assessment/AssessmentIntro';
 import Splash from './pages/Splash';
 import Signup from './pages/auth/Signup';
 import Signin from './pages/auth/Signin';
+import Welcome from './pages/Welcome';
 import Profilesetup from './pages/setup/Profilesetup';
 import CompanyProfile from './pages/company/CompanyProfile';
 // Legacy routes - kept for backwards compatibility
@@ -77,15 +117,28 @@ import MeetingDashboard from './pages/meetings/MeetingDashboard';
 import MeetingFeedbackForm from './pages/meetings/MeetingFeedbackForm';
 import Insights from './pages/Insights';
 
+// Layout component that conditionally shows sidebar
+function AppLayout({ children }) {
+  const location = useLocation();
+  const showSidebar = routesWithSidebar.some(route => location.pathname.startsWith(route));
+  
+  return (
+    <div className="min-h-screen bg-gray-50 flex">
+      {showSidebar && <Sidebar />}
+      <div className={`flex-1 ${showSidebar ? 'ml-64' : ''}`}>
+        {children}
+      </div>
+    </div>
+  );
+}
+
 function App() {
   return (
     <ActivationProvider>
       <Router>
         <ScrollToTop />
-        <div className="min-h-screen bg-gray-50 flex">
-          <Sidebar />
-          <div className="flex-1 ml-64">
-            <Routes>
+        <AppLayout>
+          <Routes>
           {/* Entry Point - Splash checks Firebase auth and routes accordingly */}
           <Route path="/" element={<Splash />} />
           <Route path="/splash" element={<Splash />} />
@@ -94,8 +147,8 @@ function App() {
           <Route path="/signup" element={<Signup />} />
           <Route path="/signin" element={<Signin />} />
           
-          {/* Hydration Home - Central routing hub (TODO: create component) */}
-          {/* <Route path="/hydration-home" element={<HydrationHome />} /> */}
+          {/* Welcome - Hydration hub and routing */}
+          <Route path="/welcome" element={<Welcome />} />
           
           {/* Onboarding Routes */}
           <Route path="/profilesetup" element={<Profilesetup />} />
@@ -161,9 +214,8 @@ function App() {
         <Route path="/joincompany" element={<JoinCompany />} />
           <Route path="/cost" element={<Cost />} />
           <Route path="/human" element={<Human />} />
-            </Routes>
-          </div>
-        </div>
+          </Routes>
+        </AppLayout>
       </Router>
     </ActivationProvider>
   );

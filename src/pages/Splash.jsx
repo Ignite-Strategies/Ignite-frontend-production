@@ -15,8 +15,8 @@ export default function Splash() {
       unsubscribe = onAuthStateChanged(auth, (user) => {
         if (user) {
           // User is authenticated - Firebase SDK found token in browser storage
-          // Route to signin (which routes to profilesetup - profilesetup handles routing)
-          navigate('/signin');
+          // Route to welcome (hydration hub - handles routing based on what's missing)
+          navigate('/welcome');
         } else {
           // User not authenticated - no token in Firebase's internal storage
           navigate('/signup');
