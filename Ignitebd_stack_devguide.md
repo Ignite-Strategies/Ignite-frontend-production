@@ -346,44 +346,116 @@ npm run build
 
 ## Key Development Patterns
 
-### 1. Contact Management
+### 1. Company Setup & Management
 
-**Create Contact**:
+**Create CompanyHQ** (Tenant Container):
 ```javascript
-POST /api/contacts
+POST /api/companyhq/create
+Headers: { Authorization: "Bearer <firebaseToken>" }
 Body: {
-  companyId: "company-hq-id",  // CompanyHQId
-  firstName: "John",
-  lastName: "Doe",
-  email: "john@example.com",
-  contactCompanyId: "company-id",  // Prospect/client company
-  pipeline: "prospect",
-  stage: "prospect-interest"
+  companyName: "Ignite Strategies",
+  ownerId: "owner-id",
+  whatYouDo: "Business acquisition services...",
+  companyStreet: "2604 N. George Mason Dr.",
+  companyCity: "Arlington",
+  companyState: "VA 22207",
+  companyWebsite: "https://www.ignitestrategies.co",
+  companyIndustry: "Professional Services",
+  companyAnnualRev: "0-100k",  // Range string
+  yearsInBusiness: "2-5",      // Range string
+  teamSize: "just-me"
 }
 ```
 
+**Response**: Returns `companyHQ` object → Store in localStorage as `companyHQId` and `companyHQ`
+
+**Routes**:
+- `/company/create-or-choose` - Choose to create or join company
+- `/companyprofile` - Company profile form (creates CompanyHQ)
+- `/company/create-success` - Success page after creation
+
+### 2. Contact Management
+
+**Create Contact** (Manual Entry):
+```javascript
+POST /api/contacts
+Headers: { Authorization: "Bearer <firebaseToken>" }
+Body: {
+  companyId: "company-hq-id",  // CompanyHQId from localStorage
+  firstName: "John",
+  lastName: "Doe",
+  email: "john@example.com",
+  phone: "555-1234",
+  contactCompany: { companyName: "Acme Corp" },  // Prospect/client company
+  status: "Prospect",
+  stage: "New",
+  lastTouch: "2025-01-15",
+  nextTouch: "2025-01-22",
+  notes: "Met at conference"
+}
+```
+
+**Contact Creation Routes**:
+- `/contacts/upload` - Choose manual or CSV upload
+- `/contacts/manual` - Manual entry form (one contact at a time)
+- `/contacts` - Contact list/hub
+
 **Hydrate Contacts**:
 ```javascript
-GET /api/contacts?companyId=xxx
+GET /api/contacts?companyId=xxx  // CompanyHQId
 GET /api/contacts?companyId=xxx&pipeline=prospect
 GET /api/contacts?companyId=xxx&stage=prospect-meeting
 ```
 
-### 2. Authentication Flow
+### 2. Authentication & Onboarding Flow
 
-1. **User signs in** (Firebase client SDK)
-2. **Create/Find User** (`POST /api/user/create`)
-3. **Hydrate User** (`GET /api/user/hydrate` with Bearer token)
-4. **Protected Routes** (use `verifyFirebaseToken` middleware)
+**Complete Flow:**
+1. **User signs in** (Firebase client SDK) → `/signup` or `/signin`
+2. **Create/Find Owner** (`POST /api/owner/create`) → Stores `ownerId` in localStorage
+3. **Welcome Hydration** (`GET /api/owner/hydrate` with Bearer token) → Routes based on completeness:
+   - **No name** → `/profilesetup` (fallback name collection)
+   - **No CompanyHQ** → `/company/create-or-choose` (company setup required)
+   - **All complete** → `/growth-dashboard` (home base)
+4. **Company Creation** (`POST /api/companyhq/create`) → Stores `companyHQId` and `companyHQ` in localStorage
+5. **Dashboard** → Uses `companyHQ` from localStorage for personalization
 
-### 3. Multi-Tenancy
+**localStorage Keys:**
+- `ownerId` - Owner ID
+- `owner` - Full Owner object (JSON)
+- `companyHQId` - CompanyHQ ID (tenant identifier)
+- `companyHQ` - Full CompanyHQ object (JSON)
+- `firebaseToken` - Firebase ID token for API calls
+
+**Protected Routes** (use `verifyFirebaseToken` middleware)
+
+### 3. Dashboard Personalization
+
+**Growth Dashboard** (`/growth-dashboard`):
+- Reads `companyHQ` from localStorage for personalization
+- Displays company name in header: `{companyName} Growth Dashboard`
+- Shows `SetupWizard` component for new companies (guides through: Company → Contacts → Assessment → Outreach)
+- Quick Actions: Check Pipeline, Add Contact, Send Email
+- Requires `companyHQId` in localStorage to function fully
+
+**Setup Wizard**:
+- Appears when `hasCompany === true` (companyHQ exists)
+- Tracks onboarding progress (Company, Contacts, Assessment, Outreach)
+- Auto-hides when all steps complete
+- Provides action buttons to navigate to each step
+
+### 4. Multi-Tenancy
 
 **Always filter by CompanyHQId**:
 - All queries must include `companyId: companyHQId`
+- Get `companyHQId` from localStorage (set during Welcome hydration or Company creation)
 - Enforces tenant isolation
 - Prevents cross-tenant data access
 
-### 4. Pipeline Tracking
+**CompanyHQ vs Company**:
+- **CompanyHQ** = Tenant container (your company - Ignite Strategies)
+- **Company** = Prospect/client companies (companies your contacts work for)
+
+### 5. Pipeline Tracking
 
 **Move Contact Through Pipeline**:
 ```javascript
@@ -457,5 +529,6 @@ This development guide serves as the foundation for:
 **Stack Version**: 1.0.0  
 **Architecture**: Contact + Company First  
 **Multi-Tenancy**: CompanyHQ-scoped  
-**Authentication**: Firebase Auth (Universal Standard)
+**Authentication**: Firebase Auth (Universal Standard)  
+**Current Status**: ✅ Company creation working, Dashboard personalization active, Contact creation (manual/CSV) implemented
 
