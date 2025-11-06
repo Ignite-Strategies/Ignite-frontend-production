@@ -8,9 +8,17 @@ export default function ContactAllPages() {
     {
       name: 'ContactsHub',
       route: '/contacts',
-      description: 'Main contacts hub - list and manage all contacts',
+      description: 'Main contacts hub - action center with quick links',
       icon: <Users className="h-6 w-6" />,
       color: 'blue',
+      status: 'Active'
+    },
+    {
+      name: 'ContactManageHome',
+      route: '/contacts/manage-home',
+      description: 'View all contacts - the main contact list view',
+      icon: <Users className="h-6 w-6" />,
+      color: 'indigo',
       status: 'Active'
     },
     {
@@ -34,7 +42,7 @@ export default function ContactAllPages() {
       route: '/contacts/list-manager',
       description: 'Manage contact lists and groups',
       icon: <List className="h-6 w-6" />,
-      color: 'indigo',
+      color: 'orange',
       status: 'Active'
     },
     {
