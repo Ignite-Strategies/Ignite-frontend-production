@@ -334,14 +334,8 @@ export default function GrowthDashboard() {
 
           <button
             onClick={() => {
-              // Scroll to ContactsHub preview section (dev mode) or navigate when route exists
-              const contactsHubSection = document.getElementById('contacts-hub-preview');
-              if (contactsHubSection) {
-                contactsHubSection.scrollIntoView({ behavior: 'smooth' });
-              } else {
-                // Fallback: navigate when route is enabled
-                navigate('/contacts');
-              }
+              // Navigate directly to contacts view (not the hub)
+              navigate('/contacts/view');
             }}
             className="flex items-center gap-4 p-4 bg-purple-50 border-2 border-purple-200 rounded-lg hover:bg-purple-100 hover:border-purple-300 transition-all text-left group"
           >
