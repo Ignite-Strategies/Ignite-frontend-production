@@ -138,44 +138,58 @@ export default function ContactManual() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    console.log('📝 Form submit started');
     setErrors([]);
     
     // Validate
     const validation = validateContactForm(formData);
     if (!validation.isValid) {
+      console.warn('❌ Form validation failed:', validation.errors);
       setErrors(validation.errors);
       return;
     }
 
+    console.log('✅ Form validation passed');
     setSaving(true);
+    console.log('💾 Saving state set to true');
 
     try {
       // Get CompanyHQ ID from localStorage
       const companyHQId = localStorage.getItem('companyHQId');
+      console.log('🏢 CompanyHQId from localStorage:', companyHQId);
       
       if (!companyHQId) {
+        console.error('❌ No CompanyHQId found');
         alert('Company not found. Please set up your company first.');
         navigate('/company/create-or-choose');
+        setSaving(false);
         return;
       }
 
       // Map form data to models
+      console.log('📋 Mapping form data...');
       const contactData = mapFormToContact(formData, companyHQId);
       const companyData = mapFormToCompany(formData, companyHQId);
       const pipelineData = mapFormToPipeline(formData);
+      
+      console.log('📤 Contact data:', contactData);
+      console.log('🏢 Company data:', companyData);
+      console.log('📊 Pipeline data:', pipelineData);
 
       // Call universal contact create route
-      // This route handles: 1. Contact upsert, 2. Company upsert, 3. Pipeline upsert
+      console.log('🚀 Calling /api/contacts/universal-create...');
       const response = await api.post('/api/contacts/universal-create', {
         contact: contactData,
         company: companyData, // Can be null
         pipeline: pipelineData // Can be null
       });
 
-      console.log('✅ Contact created:', response.data);
+      console.log('✅ Contact created successfully!');
+      console.log('📦 Response data:', response.data);
+      console.log('📦 Contact object:', response.data?.contact);
 
       // Show success state inline
-      setCreatedContact({
+      const successData = {
         firstName: formData.firstName,
         lastName: formData.lastName,
         email: formData.email,
@@ -184,18 +198,27 @@ export default function ContactManual() {
         title: formData.title,
         pipeline: formData.pipeline,
         stage: formData.stage
-      });
+      };
+      console.log('🎉 Setting success state with data:', successData);
+      setCreatedContact(successData);
       setShowSuccess(true);
+      console.log('✅ Success state set, form should show success message');
       
       // Scroll to top to show success message
       window.scrollTo({ top: 0, behavior: 'smooth' });
     } catch (error) {
-      console.error('Contact creation error:', error);
-      const errorMessage = error.response?.data?.error || error.message || 'Failed to create contact. Please try again.';
+      console.error('❌ Contact creation error:', error);
+      console.error('❌ Error response:', error.response);
+      console.error('❌ Error data:', error.response?.data);
+      console.error('❌ Error message:', error.message);
+      const errorMessage = error.response?.data?.error || error.response?.data?.details || error.message || 'Failed to create contact. Please try again.';
+      console.error('❌ Displaying error:', errorMessage);
       alert(errorMessage);
       setErrors([errorMessage]);
     } finally {
+      console.log('🏁 Finally block - setting saving to false');
       setSaving(false);
+      console.log('✅ Saving state reset');
     }
   };
 
@@ -222,6 +245,46 @@ export default function ContactManual() {
           Enter contact information - all fields in one place
         </p>
       </div>
+
+      {/* Success Display */}
+      {showSuccess && createdContact && (
+        <div className="mb-6 bg-green-50 border-2 border-green-200 rounded-lg p-4">
+          <div className="flex items-start justify-between">
+            <div className="flex items-start gap-3">
+              <CheckCircle className="h-6 w-6 text-green-600 flex-shrink-0 mt-0.5" />
+              <div>
+                <h3 className="font-semibold text-green-900 mb-2">✅ Contact Created Successfully!</h3>
+                <p className="text-sm text-green-800 mb-2">
+                  <strong>{createdContact.firstName} {createdContact.lastName}</strong>
+                  {createdContact.email && ` (${createdContact.email})`}
+                  {createdContact.companyName && ` from ${createdContact.companyName}`}
+                  {createdContact.pipeline && ` - ${createdContact.pipeline} pipeline`}
+                </p>
+                <div className="flex gap-2 mt-3">
+                  <button
+                    onClick={handleAddAnother}
+                    className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition text-sm font-medium"
+                  >
+                    Add Another Contact
+                  </button>
+                  <button
+                    onClick={handleDismissSuccess}
+                    className="px-4 py-2 bg-green-100 text-green-800 rounded-lg hover:bg-green-200 transition text-sm font-medium"
+                  >
+                    Dismiss
+                  </button>
+                </div>
+              </div>
+            </div>
+            <button
+              onClick={handleDismissSuccess}
+              className="text-green-600 hover:text-green-800 transition"
+            >
+              <X className="h-5 w-5" />
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* Error Display */}
       {errors.length > 0 && (
