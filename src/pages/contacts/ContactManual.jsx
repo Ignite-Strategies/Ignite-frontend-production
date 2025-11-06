@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { User, Building2, Mail, Phone, Briefcase, FileText, Filter, Info } from 'lucide-react';
+import { User, Building2, Mail, Phone, Briefcase, FileText, Filter, Info, CheckCircle, Plus, X } from 'lucide-react';
 import { mapFormToContact, mapFormToCompany, mapFormToPipeline, validateContactForm, getPipelineStages } from '../../services/contactFieldMapper';
 import api from '../../lib/api';
 
@@ -37,6 +37,8 @@ export default function ContactManual() {
   const [pipelineStages, setPipelineStages] = useState([]);
   const [pipelineConfig, setPipelineConfig] = useState(null);
   const [errors, setErrors] = useState([]);
+  const [showSuccess, setShowSuccess] = useState(false);
+  const [createdContact, setCreatedContact] = useState(null);
 
   // Fetch pipeline config on mount
   useEffect(() => {
@@ -85,10 +87,45 @@ export default function ContactManual() {
       ...formData,
       [e.target.name]: e.target.value
     });
-    // Clear errors when user types
+    // Clear errors and success when user types
     if (errors.length > 0) {
       setErrors([]);
     }
+    if (showSuccess) {
+      setShowSuccess(false);
+      setCreatedContact(null);
+    }
+  };
+
+  const handleAddAnother = () => {
+    // Reset form but keep pipeline selection
+    setFormData({
+      firstName: '',
+      lastName: '',
+      goesBy: '',
+      email: '',
+      phone: '',
+      title: '',
+      companyName: '',
+      companyAddress: '',
+      companyIndustry: '',
+      pipeline: formData.pipeline, // Keep pipeline selection
+      stage: '',
+      notes: '',
+      buyerDecision: '',
+      howMet: '',
+      photoURL: ''
+    });
+    setShowSuccess(false);
+    setCreatedContact(null);
+    setErrors([]);
+    // Scroll to top
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  const handleDismissSuccess = () => {
+    setShowSuccess(false);
+    setCreatedContact(null);
   };
 
   const handleSubmit = async (e) => {
@@ -129,33 +166,21 @@ export default function ContactManual() {
 
       console.log('✅ Contact created:', response.data);
 
-      const addAnother = confirm(
-        `✅ Contact "${formData.firstName} ${formData.lastName}" added successfully!\n\n` +
-        `Click OK to add another contact, or Cancel to go back.`
-      );
-
-      if (addAnother) {
-        // Reset form but keep pipeline config
-        setFormData({
-          firstName: '',
-          lastName: '',
-          goesBy: '',
-          email: '',
-          phone: '',
-          title: '',
-          companyName: '',
-          companyAddress: '',
-          companyIndustry: '',
-          pipeline: formData.pipeline, // Keep pipeline selection
-          stage: '',
-          notes: '',
-          buyerDecision: '',
-          howMet: '',
-          photoURL: ''
-        });
-      } else {
-        navigate('/contacts');
-      }
+      // Show success state inline
+      setCreatedContact({
+        firstName: formData.firstName,
+        lastName: formData.lastName,
+        email: formData.email,
+        phone: formData.phone,
+        companyName: formData.companyName,
+        title: formData.title,
+        pipeline: formData.pipeline,
+        stage: formData.stage
+      });
+      setShowSuccess(true);
+      
+      // Scroll to top to show success message
+      window.scrollTo({ top: 0, behavior: 'smooth' });
     } catch (error) {
       console.error('Contact creation error:', error);
       const errorMessage = error.response?.data?.error || error.message || 'Failed to create contact. Please try again.';
@@ -202,7 +227,7 @@ export default function ContactManual() {
         </div>
       )}
 
-      <form onSubmit={handleSubmit} className="bg-white rounded-xl shadow-lg p-8">
+      <form onSubmit={handleSubmit} className={`bg-white rounded-xl shadow-lg p-8 ${showSuccess ? 'opacity-50 pointer-events-none' : ''}`}>
         <div className="space-y-8">
           
           {/* Required Fields Section */}
