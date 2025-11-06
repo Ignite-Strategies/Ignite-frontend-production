@@ -106,7 +106,7 @@ export default function ContactsHub() {
             
             {/* View All Contacts */}
             <button
-              onClick={() => navigate('/contacts/manage-home')}
+              onClick={() => navigate('/contacts/list')}
               className="p-4 border-2 border-gray-200 rounded-lg hover:border-blue-300 hover:bg-blue-50 transition text-left flex items-center"
             >
               <Users className="h-5 w-5 text-blue-600 mr-3" />
