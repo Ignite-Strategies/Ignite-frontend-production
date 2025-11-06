@@ -1,8 +1,79 @@
 import { useNavigate } from 'react-router-dom';
-import { Upload, List, Building2, Filter, Plus, Users } from 'lucide-react';
+import { Upload, Users, List, Building2, Filter, ArrowRight } from 'lucide-react';
 
 export default function ContactsHub() {
   const navigate = useNavigate();
+
+  // 6 Core Contact Management Actions
+  const coreActions = [
+    {
+      id: 'upload',
+      title: 'Contact Upload',
+      description: 'Add contacts manually or via CSV',
+      route: '/contacts/upload',
+      icon: Upload,
+      color: 'blue',
+      gradient: 'from-blue-50 to-blue-100',
+      border: 'border-blue-200',
+      hover: 'hover:border-blue-400 hover:shadow-lg'
+    },
+    {
+      id: 'view',
+      title: 'View Contacts',
+      description: 'See all your contacts in a table',
+      route: '/contacts/list',
+      icon: Users,
+      color: 'indigo',
+      gradient: 'from-indigo-50 to-indigo-100',
+      border: 'border-indigo-200',
+      hover: 'hover:border-indigo-400 hover:shadow-lg'
+    },
+    {
+      id: 'lists',
+      title: 'Contact Lists',
+      description: 'Manage all your contact lists',
+      route: '/contacts/list-manager',
+      icon: List,
+      color: 'purple',
+      gradient: 'from-purple-50 to-purple-100',
+      border: 'border-purple-200',
+      hover: 'hover:border-purple-400 hover:shadow-lg'
+    },
+    {
+      id: 'view-lists',
+      title: 'View Lists',
+      description: 'View and manage specific lists',
+      route: '/contacts/list-manager', // Opens list manager, then click into specific list
+      icon: List,
+      color: 'pink',
+      gradient: 'from-pink-50 to-pink-100',
+      border: 'border-pink-200',
+      hover: 'hover:border-pink-400 hover:shadow-lg',
+      note: 'Access from Contact Lists page'
+    },
+    {
+      id: 'business',
+      title: 'Add Business',
+      description: 'Manage prospect/client companies',
+      route: '/contacts/companies',
+      icon: Building2,
+      color: 'green',
+      gradient: 'from-green-50 to-green-100',
+      border: 'border-green-200',
+      hover: 'hover:border-green-400 hover:shadow-lg'
+    },
+    {
+      id: 'pipeline',
+      title: 'See Deal Pipeline',
+      description: 'Visual pipeline management',
+      route: '/contacts/deal-pipelines',
+      icon: Filter,
+      color: 'orange',
+      gradient: 'from-orange-50 to-orange-100',
+      border: 'border-orange-200',
+      hover: 'hover:border-orange-400 hover:shadow-lg'
+    }
+  ];
 
   return (
     <div className="min-h-screen bg-gray-50 py-8">
@@ -20,139 +91,62 @@ export default function ContactsHub() {
           </button>
           
           <h1 className="text-4xl font-bold text-gray-900 mb-2">
-            👥 Contacts Hub
+            👥 People Hub
           </h1>
           <p className="text-gray-600 text-lg">
-            Manage your contacts, companies, and pipelines
+            Manage your contacts, lists, companies, and pipelines
           </p>
         </div>
 
-        {/* Quick Actions Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
-          
-          {/* Upload Individual Contact */}
-          <button
-            onClick={() => navigate('/contacts/upload')}
-            className="bg-gradient-to-br from-blue-50 to-blue-100 p-6 rounded-xl border-2 border-blue-200 hover:border-blue-400 hover:shadow-lg transition text-left group"
-          >
-            <div className="flex items-center mb-4">
-              <div className="w-12 h-12 bg-blue-500 text-white rounded-lg flex items-center justify-center mr-3 group-hover:scale-110 transition-transform">
-                <Plus className="h-6 w-6" />
-              </div>
-              <div>
-                <h3 className="text-lg font-semibold text-gray-900">➕ Upload Individual</h3>
-                <p className="text-sm text-gray-600">Add single contact</p>
-              </div>
-            </div>
-            <p className="text-sm text-blue-700">Manually enter or CSV upload</p>
-          </button>
-
-          {/* Create List */}
-          <button
-            onClick={() => navigate('/contacts/list-builder')}
-            className="bg-gradient-to-br from-purple-50 to-purple-100 p-6 rounded-xl border-2 border-purple-200 hover:border-purple-400 hover:shadow-lg transition text-left group"
-          >
-            <div className="flex items-center mb-4">
-              <div className="w-12 h-12 bg-purple-500 text-white rounded-lg flex items-center justify-center mr-3 group-hover:scale-110 transition-transform">
-                <List className="h-6 w-6" />
-              </div>
-              <div>
-                <h3 className="text-lg font-semibold text-gray-900">📋 Create List</h3>
-                <p className="text-sm text-gray-600">Segment contacts</p>
-              </div>
-            </div>
-            <p className="text-sm text-purple-700">Build targeted contact lists</p>
-          </button>
-
-          {/* Add Business */}
-          <button
-            onClick={() => navigate('/contacts/companies')}
-            className="bg-gradient-to-br from-indigo-50 to-indigo-100 p-6 rounded-xl border-2 border-indigo-200 hover:border-indigo-400 hover:shadow-lg transition text-left group"
-          >
-            <div className="flex items-center mb-4">
-              <div className="w-12 h-12 bg-indigo-500 text-white rounded-lg flex items-center justify-center mr-3 group-hover:scale-110 transition-transform">
-                <Building2 className="h-6 w-6" />
-              </div>
-              <div>
-                <h3 className="text-lg font-semibold text-gray-900">🏢 Add Business</h3>
-                <p className="text-sm text-gray-600">Manage companies</p>
-              </div>
-            </div>
-            <p className="text-sm text-indigo-700">Add prospect/client companies</p>
-          </button>
-
-          {/* See Deal Pipeline */}
-          <button
-            onClick={() => navigate('/contacts/deal-pipelines')}
-            className="bg-gradient-to-br from-green-50 to-green-100 p-6 rounded-xl border-2 border-green-200 hover:border-green-400 hover:shadow-lg transition text-left group"
-          >
-            <div className="flex items-center mb-4">
-              <div className="w-12 h-12 bg-green-500 text-white rounded-lg flex items-center justify-center mr-3 group-hover:scale-110 transition-transform">
-                <Filter className="h-6 w-6" />
-              </div>
-              <div>
-                <h3 className="text-lg font-semibold text-gray-900">📊 See Deal Pipeline</h3>
-                <p className="text-sm text-gray-600">Track deals</p>
-              </div>
-            </div>
-            <p className="text-sm text-green-700">View pipeline stages</p>
-          </button>
+        {/* Core Actions Grid - 6 Main Actions */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+          {coreActions.map((action) => {
+            const Icon = action.icon;
+            return (
+              <button
+                key={action.id}
+                onClick={() => navigate(action.route)}
+                className={`bg-gradient-to-br ${action.gradient} p-6 rounded-xl border-2 ${action.border} ${action.hover} transition text-left group`}
+              >
+                <div className="flex items-center mb-4">
+                  <div className={`w-12 h-12 bg-${action.color}-500 text-white rounded-lg flex items-center justify-center mr-3 group-hover:scale-110 transition-transform`}>
+                    <Icon className="h-6 w-6" />
+                  </div>
+                  <div className="flex-1">
+                    <h3 className="text-lg font-semibold text-gray-900">{action.title}</h3>
+                  </div>
+                  <ArrowRight className={`h-5 w-5 text-${action.color}-600 opacity-0 group-hover:opacity-100 transition`} />
+                </div>
+                <p className="text-sm text-gray-700 mb-2">{action.description}</p>
+                {action.note && (
+                  <p className="text-xs text-gray-500 italic">{action.note}</p>
+                )}
+              </button>
+            );
+          })}
         </div>
 
-        {/* Additional Options */}
-        <div className="bg-white rounded-xl shadow-lg p-8">
-          <h3 className="text-xl font-semibold text-gray-900 mb-6">More Options</h3>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            
-            {/* View All Contacts */}
-            <button
-              onClick={() => navigate('/contacts/list')}
-              className="p-4 border-2 border-gray-200 rounded-lg hover:border-blue-300 hover:bg-blue-50 transition text-left flex items-center"
-            >
-              <Users className="h-5 w-5 text-blue-600 mr-3" />
-              <div>
-                <h4 className="font-semibold text-gray-900">👥 View All Contacts</h4>
-                <p className="text-sm text-gray-600">See all contacts</p>
-              </div>
-            </button>
-
-            {/* Manage Lists */}
-            <button
-              onClick={() => navigate('/contacts/list-manager')}
-              className="p-4 border-2 border-gray-200 rounded-lg hover:border-purple-300 hover:bg-purple-50 transition text-left flex items-center"
-            >
-              <List className="h-5 w-5 text-purple-600 mr-3" />
-              <div>
-                <h4 className="font-semibold text-gray-900">📋 Manage Lists</h4>
-                <p className="text-sm text-gray-600">View and edit lists</p>
-              </div>
-            </button>
-
-            {/* Manual Entry */}
-            <button
-              onClick={() => navigate('/contacts/manual')}
-              className="p-4 border-2 border-gray-200 rounded-lg hover:border-emerald-300 hover:bg-emerald-50 transition text-left flex items-center"
-            >
-              <Plus className="h-5 w-5 text-emerald-600 mr-3" />
-              <div>
-                <h4 className="font-semibold text-gray-900">✏️ Manual Entry</h4>
-                <p className="text-sm text-gray-600">Enter contact details</p>
-              </div>
-            </button>
-          </div>
-        </div>
-
-        {/* Info Box */}
-        <div className="mt-8 p-6 bg-blue-50 border-2 border-blue-200 rounded-xl">
-          <div className="flex gap-3">
-            <svg className="w-6 h-6 text-blue-600 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-            </svg>
+        {/* Quick Info */}
+        <div className="bg-white rounded-xl shadow-lg p-6">
+          <h3 className="text-lg font-semibold text-gray-900 mb-4">💡 Quick Guide</h3>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm text-gray-600">
             <div>
-              <h4 className="font-semibold text-blue-900 mb-1">💡 Contact Management</h4>
-              <p className="text-sm text-blue-800">
-                Upload contacts, create lists, add companies, and track your deal pipeline. All contacts are scoped to your company (CompanyHQId) for secure multi-tenant data isolation.
-              </p>
+              <strong className="text-gray-900">Contact Upload:</strong> Add contacts one-by-one or bulk via CSV
+            </div>
+            <div>
+              <strong className="text-gray-900">View Contacts:</strong> See all contacts in a searchable table
+            </div>
+            <div>
+              <strong className="text-gray-900">Contact Lists:</strong> Create and manage lists for campaigns
+            </div>
+            <div>
+              <strong className="text-gray-900">View Lists:</strong> Open specific lists to see contacts
+            </div>
+            <div>
+              <strong className="text-gray-900">Add Business:</strong> Manage prospect/client companies
+            </div>
+            <div>
+              <strong className="text-gray-900">Deal Pipeline:</strong> Visual kanban view of contacts by stage
             </div>
           </div>
         </div>

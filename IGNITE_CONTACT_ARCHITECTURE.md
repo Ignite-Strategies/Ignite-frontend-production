@@ -159,21 +159,19 @@ GET    /api/pipelines/config                       → Get pipeline config, buye
 - Auto-submits to `/api/contacts/universal-create`
 - Shows success state after creation
 
-### ContactsHub (`/contacts`)
+### ContactsHub (`/contacts`) - Main Navigation Hub
 
-**Current State:**
-- ✅ Loads without crashing
-- ✅ Shows empty state when no contacts
-- ✅ Navigation hub for contact management features
+**Purpose**: Central entry point for all contact management features
 
-**Features:**
-- Upload Individual Contact
-- Create List
-- Add Business
-- See Deal Pipeline
-- View All Contacts
-- Manage Lists
-- Manual Entry
+**6 Core Actions:**
+1. **Contact Upload** → `/contacts/upload` - Add contacts (manual or CSV)
+2. **View Contacts** → `/contacts/list` - See all contacts in table view
+3. **Contact Lists** → `/contacts/list-manager` - Manage all contact lists
+4. **View Lists** → `/contacts/list-manager` - View specific lists (accessed from list manager)
+5. **Add Business** → `/contacts/companies` - Manage prospect/client companies
+6. **See Deal Pipeline** → `/contacts/deal-pipelines` - Visual pipeline management
+
+**Status**: ✅ Refactored - Clean 6-action structure
 
 ---
 
@@ -245,13 +243,19 @@ GET    /api/pipelines/config                       → Get pipeline config, buye
 7. ✅ **Schema: Company model** - Added `website` field
 8. ✅ **Schema: Contact model** - Added `notes` field, removed `photoURL`
 
-### ⏳ Next Steps (Phase 2)
+### ✅ Completed (Phase 2)
 
-1. ⏳ **Frontend: Contact list display** - Show contacts in table view
-2. ⏳ **Frontend: Contact detail view** - View/edit individual contacts
-3. ⏳ **Frontend: Pipeline/stage management UI** - Move contacts through pipeline
-4. ⏳ **Backend: CSV upload** - Bulk import contacts
-5. ⏳ **Frontend: Contact search/filter** - Advanced filtering
+1. ✅ **Frontend: Contact list display** - ContactList page shows all contacts in table
+2. ✅ **Frontend: ContactsHub refactor** - Clean 6-action navigation structure
+3. ✅ **Frontend: Navigation consolidation** - Clear routing, no duplicate pages
+
+### ⏳ Next Steps (Phase 3)
+
+1. ⏳ **Frontend: Contact detail view** - View/edit individual contacts
+2. ⏳ **Frontend: Pipeline/stage management UI** - Move contacts through pipeline
+3. ⏳ **Backend: CSV upload** - Bulk import contacts
+4. ⏳ **Frontend: Contact search/filter** - Advanced filtering
+5. ⏳ **Consolidate ContactManageHome** - Merge into ContactListManager or deprecate
 
 ---
 
