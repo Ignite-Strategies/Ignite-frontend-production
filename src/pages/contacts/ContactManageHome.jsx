@@ -192,8 +192,8 @@ export default function ContactManageHome() {
       <PageHeader
         title="Contact Management"
         subtitle="Manage your contacts with auto-sync, manual updates, and CSV uploads"
-        backTo="/"
-        backLabel="Back to Company Central"
+        backTo="/growth-dashboard"
+        backLabel="Back to Growth Dashboard"
         actions={
           <div className="flex gap-3">
             <button
