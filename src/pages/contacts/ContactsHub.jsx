@@ -1,412 +1,162 @@
-import { useState, useEffect } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
-import { Plus, Edit, MessageSquare, Search, User, Building2, Users } from 'lucide-react';
-import api from '../../lib/api';
+import { useNavigate } from 'react-router-dom';
+import { Upload, List, Building2, Filter, Plus, Users } from 'lucide-react';
 
 export default function ContactsHub() {
   const navigate = useNavigate();
-  const [contacts, setContacts] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
-  const [searchTerm, setSearchTerm] = useState('');
-  const [selectedContact, setSelectedContact] = useState(null);
-  const [showUpdateModal, setShowUpdateModal] = useState(false);
-  const [formData, setFormData] = useState({});
-
-  // Get companyHQId from localStorage
-  const companyHQId = localStorage.getItem('companyHQId');
-  
-  // Debug: Log component mount and localStorage state
-  useEffect(() => {
-    console.log('🚀 ContactsHub: Component mounted');
-    console.log('📦 ContactsHub: localStorage state:', {
-      companyHQId: localStorage.getItem('companyHQId'),
-      companyHQ: localStorage.getItem('companyHQ'),
-      ownerId: localStorage.getItem('ownerId')
-    });
-  }, []);
-
-  // Fetch contacts - route is enabled now!
-  useEffect(() => {
-    console.log('🚀 ContactsHub: Fetching contacts...');
-    console.log('📦 ContactsHub: companyHQId from localStorage:', companyHQId);
-    
-    if (!companyHQId) {
-      console.warn('⚠️ ContactsHub: No companyHQId found in localStorage');
-      setError('No company found. Please set up your company first.');
-      setLoading(false);
-      return;
-    }
-
-    const fetchContacts = async () => {
-      try {
-        setLoading(true);
-        setError(null);
-        
-        const apiUrl = `/api/contacts?companyHQId=${companyHQId}`;
-        console.log('🌐 ContactsHub: Fetching from:', apiUrl);
-        const response = await api.get(apiUrl);
-        
-        console.log('✅ ContactsHub: Response:', response.data);
-        
-        if (response.data.success && response.data.contacts) {
-          setContacts(response.data.contacts);
-        } else {
-          setContacts([]);
-        }
-      } catch (err) {
-        console.error('❌ ContactsHub: Error:', err);
-        // If 404, API route doesn't exist yet - that's okay, show empty state
-        if (err.response?.status === 404) {
-          console.log('ℹ️ ContactsHub: API route not implemented yet (404) - showing empty state');
-          setContacts([]);
-          setError(null);
-        } else {
-          setContacts([]);
-          setError(`Error: ${err.message || 'Failed to load contacts'}`);
-        }
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchContacts();
-  }, [companyHQId]);
-
-  // Filter contacts by search term
-  const filteredContacts = (contacts || []).filter(contact => {
-    if (!searchTerm) return true;
-    const search = searchTerm.toLowerCase();
-    const firstName = contact.firstName || '';
-    const lastName = contact.lastName || '';
-    const fullName = `${firstName} ${lastName}`.toLowerCase();
-    const email = contact.email || '';
-    const companyName = contact.contactCompany?.companyName || '';
-    
-    return (
-      fullName.includes(search) ||
-      email.toLowerCase().includes(search) ||
-      companyName.toLowerCase().includes(search)
-    );
-  });
-
-  const handleUpdate = (contact) => {
-    setSelectedContact(contact);
-    setFormData({
-      status: contact.pipeline?.pipeline || contact.status || 'Cold',
-      stage: contact.pipeline?.stage || contact.stage || 'Prospect',
-      lastTouch: contact.lastTouch || new Date().toISOString().split('T')[0],
-      nextTouch: contact.nextTouch || '',
-      notes: contact.notes || ''
-    });
-    setShowUpdateModal(true);
-  };
-
-  const handleSaveUpdate = async () => {
-    if (!selectedContact || !companyHQId) return;
-
-    try {
-      // Update contact via API
-      const response = await api.put(`/api/contacts/${selectedContact.id}`, formData);
-      
-      if (response.data.success) {
-        // Refresh contacts list
-        const contactsResponse = await api.get(`/api/contacts?companyHQId=${companyHQId}`);
-        if (contactsResponse.data.success && contactsResponse.data.contacts) {
-          setContacts(contactsResponse.data.contacts);
-        }
-        setShowUpdateModal(false);
-      }
-    } catch (err) {
-      console.error('Error updating contact:', err);
-      // Fallback: update local state if API fails
-      const updated = (contacts || []).map(c => 
-        c.id === selectedContact.id 
-          ? { ...c, ...formData }
-          : c
-      );
-      setContacts(updated);
-      setShowUpdateModal(false);
-    }
-  };
-
-  const getStatusColor = (status) => {
-    const colors = {
-      Cold: 'bg-gray-100 text-gray-800',
-      Warm: 'bg-orange-100 text-orange-800',
-      Active: 'bg-blue-100 text-blue-800',
-      Signed: 'bg-green-100 text-green-800'
-    };
-    return colors[status] || 'bg-gray-100 text-gray-800';
-  };
-
-  // Show loading state
-  if (loading) {
-    return (
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="flex items-center justify-center h-64">
-          <div className="text-center">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
-            <p className="text-gray-600">Loading contacts...</p>
-          </div>
-        </div>
-      </div>
-    );
-  }
-
-  // Show error state
-  if (error && !companyHQId) {
-    return (
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="bg-yellow-50 border-2 border-yellow-200 rounded-xl p-6 text-center">
-          <p className="text-yellow-800 mb-4">{error}</p>
-          <button
-            onClick={() => navigate('/company/create-or-choose')}
-            className="bg-yellow-600 hover:bg-yellow-700 text-white px-4 py-2 rounded-lg"
-          >
-            Set Up Company
-          </button>
-        </div>
-      </div>
-    );
-  }
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-      <Link
-        to="/growth-dashboard"
-        className="text-sm text-gray-600 hover:text-gray-900 mb-6 inline-block"
-      >
-        ← Back to Growth Dashboard
-      </Link>
-
-      <div className="flex justify-between items-center mb-6">
-        <div>
-          <h1 className="text-3xl font-bold mb-2">Contacts & Relationships</h1>
-          <p className="text-gray-600">Manage your connections and touchpoints</p>
-        </div>
-        <button
-          onClick={() => navigate('/contacts/upload')}
-          className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-medium flex items-center gap-2"
-        >
-          <Plus className="h-4 w-4" />
-          Add Contact
-        </button>
-      </div>
-
-      {/* Error message */}
-      {error && (
-        <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-6">
-          <p className="text-sm text-yellow-800">{error}</p>
-        </div>
-      )}
-
-      {/* Search/Filter */}
-      <div className="mb-6">
-        <div className="relative">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
-          <input
-            type="text"
-            placeholder="Search contacts, companies, or emails..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-          />
-        </div>
-      </div>
-
-      {/* Contacts Table */}
-      {filteredContacts.length > 0 ? (
-        <div className="bg-white rounded-lg shadow-sm overflow-hidden">
-          <div className="overflow-x-auto">
-            <table className="min-w-full divide-y divide-gray-200">
-              <thead className="bg-gray-50">
-                <tr>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Contact</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Company</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Type</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Status</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Last Touch</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Next Touch</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Actions</th>
-                </tr>
-              </thead>
-              <tbody className="bg-white divide-y divide-gray-200">
-                {filteredContacts.map((contact) => (
-                  <tr key={contact.id} className="hover:bg-gray-50">
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="flex items-center gap-3">
-                        {contact.photoURL ? (
-                          <img src={contact.photoURL} alt={`${contact.firstName} ${contact.lastName}`} className="h-8 w-8 rounded-full" />
-                        ) : (
-                          <div className="h-8 w-8 rounded-full bg-blue-100 flex items-center justify-center">
-                            <User className="h-4 w-4 text-blue-600" />
-                          </div>
-                        )}
-                        <div>
-                          <p className="text-sm font-medium text-gray-900">
-                            {contact.firstName || contact.lastName 
-                              ? `${contact.firstName || ''} ${contact.lastName || ''}`.trim()
-                              : contact.goesBy || 'Unnamed Contact'}
-                          </p>
-                          <p className="text-xs text-gray-500">{contact.email || '-'}</p>
-                        </div>
-                      </div>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="flex items-center gap-2">
-                        <Building2 className="h-4 w-4 text-gray-400" />
-                        <span className="text-sm text-gray-900">{contact.contactCompany?.companyName || '-'}</span>
-                      </div>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                      {contact.title || '-'}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <span className={`px-2 py-1 text-xs font-semibold rounded-full ${getStatusColor(contact.pipeline?.pipeline || contact.status || 'Cold')}`}>
-                        {contact.pipeline?.pipeline || contact.status || 'Cold'}
-                      </span>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                      {contact.lastTouch || '-'}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm">
-                      {contact.nextTouch ? (
-                        <span className="font-medium text-orange-600">{contact.nextTouch}</span>
-                      ) : (
-                        <span className="text-gray-400">-</span>
-                      )}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm">
-                      <div className="flex gap-2">
-                        <button
-                          onClick={() => handleUpdate(contact)}
-                          className="text-blue-600 hover:text-blue-800"
-                        >
-                          Update
-                        </button>
-                        <button
-                          onClick={() => navigate(`/messages?contact=${contact.id}`)}
-                          className="text-green-600 hover:text-green-800"
-                        >
-                          Message
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </div>
-      ) : (
-        <div className="bg-white rounded-lg shadow-sm p-12 text-center">
-          <Users className="h-16 w-16 text-gray-300 mx-auto mb-4" />
-          <p className="text-gray-500 mb-2">No contacts found</p>
-          <p className="text-sm text-gray-400 mb-6">
-            {searchTerm ? 'Try adjusting your search' : 'Get started by adding your first contact'}
+    <div className="min-h-screen bg-gray-50 py-8">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        {/* Header */}
+        <div className="mb-8">
+          <button
+            onClick={() => navigate('/growth-dashboard')}
+            className="flex items-center text-gray-600 hover:text-gray-900 mb-4"
+          >
+            <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+            </svg>
+            Back to Dashboard
+          </button>
+          
+          <h1 className="text-4xl font-bold text-gray-900 mb-2">
+            👥 Contacts Hub
+          </h1>
+          <p className="text-gray-600 text-lg">
+            Manage your contacts, companies, and pipelines
           </p>
+        </div>
+
+        {/* Quick Actions Grid */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
+          
+          {/* Upload Individual Contact */}
           <button
             onClick={() => navigate('/contacts/upload')}
-            className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg font-medium"
+            className="bg-gradient-to-br from-blue-50 to-blue-100 p-6 rounded-xl border-2 border-blue-200 hover:border-blue-400 hover:shadow-lg transition text-left group"
           >
-            Add Contact
-          </button>
-        </div>
-      )}
-
-      {/* Update Contact Modal */}
-      {showUpdateModal && selectedContact && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-xl shadow-xl max-w-md w-full p-6 max-h-[90vh] overflow-y-auto">
-            <h2 className="text-2xl font-bold mb-4">Update Contact</h2>
-            <p className="text-sm text-gray-600 mb-6">
-              {selectedContact.firstName || selectedContact.lastName 
-                ? `${selectedContact.firstName || ''} ${selectedContact.lastName || ''}`.trim()
-                : selectedContact.goesBy || 'Unnamed Contact'}
-              {' - '}
-              {selectedContact.contactCompany?.companyName || selectedContact.company || 'No Company'}
-            </p>
-
-            <div className="space-y-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Status</label>
-                <select
-                  value={formData.status}
-                  onChange={(e) => setFormData({ ...formData, status: e.target.value })}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
-                >
-                  <option value="Cold">Cold</option>
-                  <option value="Warm">Warm</option>
-                  <option value="Active">Active</option>
-                  <option value="Signed">Signed</option>
-                </select>
+            <div className="flex items-center mb-4">
+              <div className="w-12 h-12 bg-blue-500 text-white rounded-lg flex items-center justify-center mr-3 group-hover:scale-110 transition-transform">
+                <Plus className="h-6 w-6" />
               </div>
-
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Stage</label>
-                <select
-                  value={formData.stage}
-                  onChange={(e) => setFormData({ ...formData, stage: e.target.value })}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
-                >
-                  <option value="Prospect">Prospect</option>
-                  <option value="Warm">Warm</option>
-                  <option value="Engaged">Engaged</option>
-                  <option value="Client">Client</option>
-                </select>
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Last Touch</label>
-                <input
-                  type="date"
-                  value={formData.lastTouch}
-                  onChange={(e) => setFormData({ ...formData, lastTouch: e.target.value })}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Next Touch</label>
-                <input
-                  type="date"
-                  value={formData.nextTouch}
-                  onChange={(e) => setFormData({ ...formData, nextTouch: e.target.value })}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Activity Notes</label>
-                <textarea
-                  value={formData.notes}
-                  onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
-                  placeholder="Add notes about this interaction..."
-                  rows="3"
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
-                />
+                <h3 className="text-lg font-semibold text-gray-900">➕ Upload Individual</h3>
+                <p className="text-sm text-gray-600">Add single contact</p>
               </div>
             </div>
+            <p className="text-sm text-blue-700">Manually enter or CSV upload</p>
+          </button>
 
-            <div className="flex gap-3 mt-6">
-              <button
-                onClick={() => setShowUpdateModal(false)}
-                className="flex-1 px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200"
-              >
-                Cancel
-              </button>
-              <button
-                onClick={handleSaveUpdate}
-                className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
-              >
-                Save
-              </button>
+          {/* Create List */}
+          <button
+            onClick={() => navigate('/contacts/list-builder')}
+            className="bg-gradient-to-br from-purple-50 to-purple-100 p-6 rounded-xl border-2 border-purple-200 hover:border-purple-400 hover:shadow-lg transition text-left group"
+          >
+            <div className="flex items-center mb-4">
+              <div className="w-12 h-12 bg-purple-500 text-white rounded-lg flex items-center justify-center mr-3 group-hover:scale-110 transition-transform">
+                <List className="h-6 w-6" />
+              </div>
+              <div>
+                <h3 className="text-lg font-semibold text-gray-900">📋 Create List</h3>
+                <p className="text-sm text-gray-600">Segment contacts</p>
+              </div>
+            </div>
+            <p className="text-sm text-purple-700">Build targeted contact lists</p>
+          </button>
+
+          {/* Add Business */}
+          <button
+            onClick={() => navigate('/contacts/companies')}
+            className="bg-gradient-to-br from-indigo-50 to-indigo-100 p-6 rounded-xl border-2 border-indigo-200 hover:border-indigo-400 hover:shadow-lg transition text-left group"
+          >
+            <div className="flex items-center mb-4">
+              <div className="w-12 h-12 bg-indigo-500 text-white rounded-lg flex items-center justify-center mr-3 group-hover:scale-110 transition-transform">
+                <Building2 className="h-6 w-6" />
+              </div>
+              <div>
+                <h3 className="text-lg font-semibold text-gray-900">🏢 Add Business</h3>
+                <p className="text-sm text-gray-600">Manage companies</p>
+              </div>
+            </div>
+            <p className="text-sm text-indigo-700">Add prospect/client companies</p>
+          </button>
+
+          {/* See Deal Pipeline */}
+          <button
+            onClick={() => navigate('/contacts/deal-pipelines')}
+            className="bg-gradient-to-br from-green-50 to-green-100 p-6 rounded-xl border-2 border-green-200 hover:border-green-400 hover:shadow-lg transition text-left group"
+          >
+            <div className="flex items-center mb-4">
+              <div className="w-12 h-12 bg-green-500 text-white rounded-lg flex items-center justify-center mr-3 group-hover:scale-110 transition-transform">
+                <Filter className="h-6 w-6" />
+              </div>
+              <div>
+                <h3 className="text-lg font-semibold text-gray-900">📊 See Deal Pipeline</h3>
+                <p className="text-sm text-gray-600">Track deals</p>
+              </div>
+            </div>
+            <p className="text-sm text-green-700">View pipeline stages</p>
+          </button>
+        </div>
+
+        {/* Additional Options */}
+        <div className="bg-white rounded-xl shadow-lg p-8">
+          <h3 className="text-xl font-semibold text-gray-900 mb-6">More Options</h3>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            
+            {/* View All Contacts */}
+            <button
+              onClick={() => navigate('/contacts/manage-home')}
+              className="p-4 border-2 border-gray-200 rounded-lg hover:border-blue-300 hover:bg-blue-50 transition text-left flex items-center"
+            >
+              <Users className="h-5 w-5 text-blue-600 mr-3" />
+              <div>
+                <h4 className="font-semibold text-gray-900">👥 View All Contacts</h4>
+                <p className="text-sm text-gray-600">See all contacts</p>
+              </div>
+            </button>
+
+            {/* Manage Lists */}
+            <button
+              onClick={() => navigate('/contacts/list-manager')}
+              className="p-4 border-2 border-gray-200 rounded-lg hover:border-purple-300 hover:bg-purple-50 transition text-left flex items-center"
+            >
+              <List className="h-5 w-5 text-purple-600 mr-3" />
+              <div>
+                <h4 className="font-semibold text-gray-900">📋 Manage Lists</h4>
+                <p className="text-sm text-gray-600">View and edit lists</p>
+              </div>
+            </button>
+
+            {/* Manual Entry */}
+            <button
+              onClick={() => navigate('/contacts/manual')}
+              className="p-4 border-2 border-gray-200 rounded-lg hover:border-emerald-300 hover:bg-emerald-50 transition text-left flex items-center"
+            >
+              <Plus className="h-5 w-5 text-emerald-600 mr-3" />
+              <div>
+                <h4 className="font-semibold text-gray-900">✏️ Manual Entry</h4>
+                <p className="text-sm text-gray-600">Enter contact details</p>
+              </div>
+            </button>
+          </div>
+        </div>
+
+        {/* Info Box */}
+        <div className="mt-8 p-6 bg-blue-50 border-2 border-blue-200 rounded-xl">
+          <div className="flex gap-3">
+            <svg className="w-6 h-6 text-blue-600 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            <div>
+              <h4 className="font-semibold text-blue-900 mb-1">💡 Contact Management</h4>
+              <p className="text-sm text-blue-800">
+                Upload contacts, create lists, add companies, and track your deal pipeline. All contacts are scoped to your company (CompanyHQId) for secure multi-tenant data isolation.
+              </p>
             </div>
           </div>
         </div>
-      )}
+      </div>
     </div>
   );
 }
-
