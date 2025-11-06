@@ -44,16 +44,35 @@ api.interceptors.response.use(
     console.log('✅ API Response:', response.status, response.data);
     return response;
   },
-  error => {
+  async error => {
     console.error('❌ API Error:', error.response?.status, error.response?.data || error.message);
     
-    // Handle 401 (Unauthorized) - token expired or invalid
+    // Handle 401 (Unauthorized) - but be smart about it
     if (error.response?.status === 401) {
-      console.error('🚫 Unauthorized - redirecting to signup');
-      // Clear any stored auth data
-      localStorage.clear();
-      // Redirect to signup
-      window.location.href = '/signup';
+      // Check if user is actually logged in via Firebase
+      const firebaseAuth = getAuth();
+      const currentUser = firebaseAuth.currentUser;
+      
+      // Check if this is a hydration/non-critical endpoint
+      const isHydrationEndpoint = error.config?.url?.includes('/hydrate') || 
+                                  error.config?.url?.includes('/contacts') ||
+                                  error.config?.url?.includes('/api/contacts');
+      
+      // For 401 errors, navigate to page-not-found (soft redirect)
+      // This gives user option to go home or sign in again
+      if (!currentUser || !isHydrationEndpoint) {
+        console.warn('⚠️ 401 error - navigating to page-not-found');
+        window.location.href = '/page-not-found';
+        return Promise.reject(error);
+      }
+      
+      // For hydration endpoints OR if user exists but got 401:
+      // Let component handle gracefully (show error, use cache, etc.)
+      if (isHydrationEndpoint) {
+        console.warn('⚠️ Hydration endpoint failed with 401 - component will handle gracefully');
+      } else if (currentUser) {
+        console.warn('⚠️ User exists but got 401 - may be token issue, component will handle');
+      }
     }
     
     return Promise.reject(error);

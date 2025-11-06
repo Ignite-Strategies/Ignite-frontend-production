@@ -133,6 +133,7 @@ import BusinessPointLawProposal from './pages/proposals/BusinessPointLawProposal
 import MeetingDashboard from './pages/meetings/MeetingDashboard';
 import MeetingFeedbackForm from './pages/meetings/MeetingFeedbackForm';
 import Insights from './pages/Insights';
+import PageNotFound from './pages/PageNotFound';
 
 // Layout component that conditionally shows sidebar
 function AppLayout({ children }) {
@@ -163,6 +164,9 @@ function App() {
           {/* Auth Routes */}
           <Route path="/signup" element={<Signup />} />
           <Route path="/signin" element={<Signin />} />
+          
+          {/* Error/Not Found */}
+          <Route path="/page-not-found" element={<PageNotFound />} />
           
           {/* Welcome - Hydration hub and routing */}
           <Route path="/welcome" element={<Welcome />} />

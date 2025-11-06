@@ -32,8 +32,8 @@ export default function ContactList() {
         console.log('✅ Loaded contacts from localStorage:', contacts.length);
         setContacts(contacts);
         setLoading(false);
-        // Refresh in background to get latest data
-        refreshContactsFromAPI();
+        // Refresh in background silently (no loading state)
+        refreshContactsFromAPI(false); // false = don't show loading
         return;
       } catch (error) {
         console.error('❌ Error parsing cached contacts:', error);
@@ -41,15 +41,17 @@ export default function ContactList() {
       }
     }
 
-    // No cache or parse error - fetch from API
-    await refreshContactsFromAPI();
+    // No cache or parse error - fetch from API (with loading state)
+    await refreshContactsFromAPI(true); // true = show loading
   };
 
-  const refreshContactsFromAPI = async () => {
+  const refreshContactsFromAPI = async (showLoading = true) => {
     if (!companyHQId) return;
 
     try {
-      setLoading(true);
+      if (showLoading) {
+        setLoading(true);
+      }
       console.log('📡 Fetching contacts from API for companyHQId:', companyHQId);
       
       // Build query params
@@ -76,10 +78,15 @@ export default function ContactList() {
     } catch (error) {
       console.error('❌ Error fetching contacts:', error);
       console.error('❌ Error response:', error.response);
-      // Don't show error to user - just show empty state
-      setContacts([]);
+      // Don't show error to user - just log it
+      // If we have cached data, keep showing it
+      if (showLoading) {
+        setContacts([]);
+      }
     } finally {
-      setLoading(false);
+      if (showLoading) {
+        setLoading(false);
+      }
     }
   };
 
