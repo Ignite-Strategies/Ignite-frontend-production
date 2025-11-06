@@ -33,7 +33,8 @@ const navigationGroups = [
   {
     name: 'Central Command',
     items: [
-      { name: 'Pipeline', path: '/bdpipeline', icon: Target },
+      { name: 'People', path: '/contacts', icon: Users },
+      { name: 'Pipeline', path: '/contacts/deal-pipelines', icon: Target },
     ]
   },
   {
