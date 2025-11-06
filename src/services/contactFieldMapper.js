@@ -94,14 +94,14 @@ export function validateContactForm(formData) {
 
 /**
  * Get default pipeline stages for a pipeline type
- * This should match backend pipeline config
+ * This should match backend config/pipelineConfig.js
+ * Note: This is a fallback - the form should fetch from backend
  */
 export function getPipelineStages(pipelineType) {
-  // TODO: Fetch from backend /api/pipelines/config
-  // For now, return common stages
+  // Default stages (matches backend config/pipelineConfig.js)
   const stageMap = {
-    'prospect': ['interest', 'meeting', 'proposal', 'negotiation'],
-    'client': ['onboarding', 'active', 'renewal'],
+    'prospect': ['interest', 'meeting', 'proposal', 'negotiation', 'qualified'],
+    'client': ['onboarding', 'active', 'renewal', 'upsell'],
     'collaborator': ['initial', 'active', 'partnership'],
     'institution': ['awareness', 'engagement', 'partnership']
   };

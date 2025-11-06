@@ -42,23 +42,22 @@ export default function ContactManual() {
   useEffect(() => {
     const fetchPipelineConfig = async () => {
       try {
-        // TODO: Uncomment when backend route exists
-        // const response = await api.get('/api/pipelines/config');
-        // setPipelineConfig(response.data.pipelines);
-        
-        // For now, use default config
+        // Try to fetch from backend
+        const response = await api.get('/api/pipelines/config');
+        if (response.data.success && response.data.pipelines) {
+          setPipelineConfig(response.data.pipelines);
+          console.log('✅ Pipeline config loaded from backend:', response.data.pipelines);
+        } else {
+          throw new Error('Invalid response format');
+        }
+      } catch (err) {
+        console.warn('⚠️ Could not fetch pipeline config from backend, using defaults:', err.message);
+        // Fallback to default config (matches backend config/pipelineConfig.js)
         setPipelineConfig({
-          prospect: ['interest', 'meeting', 'proposal', 'negotiation'],
-          client: ['onboarding', 'active', 'renewal'],
+          prospect: ['interest', 'meeting', 'proposal', 'negotiation', 'qualified'],
+          client: ['onboarding', 'active', 'renewal', 'upsell'],
           collaborator: ['initial', 'active', 'partnership'],
           institution: ['awareness', 'engagement', 'partnership']
-        });
-      } catch (err) {
-        console.error('Error fetching pipeline config:', err);
-        // Use defaults if API fails
-        setPipelineConfig({
-          prospect: ['interest', 'meeting', 'proposal', 'negotiation'],
-          client: ['onboarding', 'active', 'renewal']
         });
       }
     };
