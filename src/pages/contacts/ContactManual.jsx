@@ -1,33 +1,108 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { User, Building2, Mail, Phone, Briefcase } from 'lucide-react';
-import PageHeader from '../../components/PageHeader';
-import { useLocalStorage } from '../../hooks/useLocalStorage';
+import { User, Building2, Mail, Phone, Briefcase, FileText, Filter, Info } from 'lucide-react';
+import { mapFormToContact, mapFormToCompany, mapFormToPipeline, validateContactForm, getPipelineStages } from '../../services/contactFieldMapper';
 import api from '../../lib/api';
 
 export default function ContactManual() {
   const navigate = useNavigate();
-  const [contacts, setContacts] = useLocalStorage('contacts', []);
   const [formData, setFormData] = useState({
+    // Required
     firstName: '',
     lastName: '',
+    
+    // Basic contact info
+    goesBy: '',
     email: '',
     phone: '',
-    company: '',
     title: '',
-    notes: ''
+    
+    // Company
+    companyName: '',
+    companyAddress: '',
+    companyIndustry: '',
+    
+    // Pipeline
+    pipeline: '',
+    stage: '',
+    
+    // Additional
+    notes: '',
+    buyerDecision: '',
+    howMet: '',
+    photoURL: ''
   });
+  
   const [saving, setSaving] = useState(false);
+  const [pipelineStages, setPipelineStages] = useState([]);
+  const [pipelineConfig, setPipelineConfig] = useState(null);
+  const [errors, setErrors] = useState([]);
+
+  // Fetch pipeline config on mount
+  useEffect(() => {
+    const fetchPipelineConfig = async () => {
+      try {
+        // TODO: Uncomment when backend route exists
+        // const response = await api.get('/api/pipelines/config');
+        // setPipelineConfig(response.data.pipelines);
+        
+        // For now, use default config
+        setPipelineConfig({
+          prospect: ['interest', 'meeting', 'proposal', 'negotiation'],
+          client: ['onboarding', 'active', 'renewal'],
+          collaborator: ['initial', 'active', 'partnership'],
+          institution: ['awareness', 'engagement', 'partnership']
+        });
+      } catch (err) {
+        console.error('Error fetching pipeline config:', err);
+        // Use defaults if API fails
+        setPipelineConfig({
+          prospect: ['interest', 'meeting', 'proposal', 'negotiation'],
+          client: ['onboarding', 'active', 'renewal']
+        });
+      }
+    };
+    
+    fetchPipelineConfig();
+  }, []);
+
+  // Update stages when pipeline changes
+  useEffect(() => {
+    if (formData.pipeline && pipelineConfig) {
+      const stages = pipelineConfig[formData.pipeline] || [];
+      setPipelineStages(stages);
+      
+      // Reset stage if current stage not in new pipeline
+      if (formData.stage && !stages.includes(formData.stage)) {
+        setFormData(prev => ({ ...prev, stage: '' }));
+      }
+    } else {
+      setPipelineStages([]);
+    }
+  }, [formData.pipeline, pipelineConfig]);
 
   const handleChange = (e) => {
     setFormData({
       ...formData,
       [e.target.name]: e.target.value
     });
+    // Clear errors when user types
+    if (errors.length > 0) {
+      setErrors([]);
+    }
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setErrors([]);
+    
+    // Validate
+    const validation = validateContactForm(formData);
+    if (!validation.isValid) {
+      setErrors(validation.errors);
+      return;
+    }
+
     setSaving(true);
 
     try {
@@ -40,189 +115,373 @@ export default function ContactManual() {
         return;
       }
 
-      // Create contact via API
-      const response = await api.post('/api/contacts', {
-        companyId: companyHQId, // CompanyHQId for multi-tenancy
-        firstName: formData.firstName,
-        lastName: formData.lastName,
-        email: formData.email,
-        phone: formData.phone,
-        title: formData.title,
-        // Note: Company (prospect/client company) would be created separately if needed
+      // Map form data to models
+      const contactData = mapFormToContact(formData, companyHQId);
+      const companyData = mapFormToCompany(formData, companyHQId);
+      const pipelineData = mapFormToPipeline(formData);
+
+      // Call universal contact create route
+      // This route handles: 1. Contact upsert, 2. Company upsert, 3. Pipeline upsert
+      const response = await api.post('/api/contacts/universal-create', {
+        contact: contactData,
+        company: companyData, // Can be null
+        pipeline: pipelineData // Can be null
       });
 
       console.log('✅ Contact created:', response.data);
 
-      // Add to local storage for immediate UI update
-      const newContact = {
-        id: response.data.contact.id,
-        name: `${formData.firstName} ${formData.lastName}`.trim(),
-        email: formData.email,
-        phone: formData.phone,
-        company: formData.company,
-        title: formData.title,
-        status: 'Cold',
-        stage: 'Prospect',
-        source: 'Manual Entry',
-        createdAt: new Date().toISOString()
-      };
-      setContacts([...contacts, newContact]);
-
-      const addAnother = confirm(`✅ Contact "${formData.firstName} ${formData.lastName}" added successfully!\n\nClick OK to add another contact, or Cancel to go back to contacts.`);
+      const addAnother = confirm(
+        `✅ Contact "${formData.firstName} ${formData.lastName}" added successfully!\n\n` +
+        `Click OK to add another contact, or Cancel to go back.`
+      );
 
       if (addAnother) {
-        // Reset form
+        // Reset form but keep pipeline config
         setFormData({
           firstName: '',
           lastName: '',
+          goesBy: '',
           email: '',
           phone: '',
-          company: '',
           title: '',
-          notes: ''
+          companyName: '',
+          companyAddress: '',
+          companyIndustry: '',
+          pipeline: formData.pipeline, // Keep pipeline selection
+          stage: '',
+          notes: '',
+          buyerDecision: '',
+          howMet: '',
+          photoURL: ''
         });
       } else {
         navigate('/contacts');
       }
     } catch (error) {
       console.error('Contact creation error:', error);
-      alert('Failed to create contact. Please try again.');
+      const errorMessage = error.response?.data?.error || error.message || 'Failed to create contact. Please try again.';
+      alert(errorMessage);
+      setErrors([errorMessage]);
     } finally {
       setSaving(false);
     }
   };
 
+  const pipelineOptions = pipelineConfig ? Object.keys(pipelineConfig) : [];
+
   return (
-    <div className="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-      <PageHeader
-        title="➕ Add Contact Manually"
-        subtitle="Enter contact information one by one"
-        backTo="/contacts/upload"
-        backLabel="Back to Upload Options"
-      />
+    <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      {/* Header */}
+      <div className="mb-8">
+        <button
+          onClick={() => navigate('/contacts/upload')}
+          className="flex items-center text-gray-600 hover:text-gray-900 mb-4"
+        >
+          <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+          </svg>
+          Back to Upload Options
+        </button>
+        
+        <h1 className="text-3xl font-bold text-gray-900 mb-2">
+          ➕ Add Contact Manually
+        </h1>
+        <p className="text-gray-600">
+          Enter contact information - all fields in one place
+        </p>
+      </div>
 
-      <form onSubmit={handleSubmit} className="bg-white rounded-xl shadow-lg p-6">
-        <div className="space-y-6">
-          {/* Name Fields */}
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <label htmlFor="firstName" className="block text-sm font-medium text-gray-700 mb-2">
-                <User className="h-4 w-4 inline mr-1" />
-                First Name *
-              </label>
-              <input
-                type="text"
-                id="firstName"
-                name="firstName"
-                value={formData.firstName}
-                onChange={handleChange}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                required
-              />
+      {/* Error Display */}
+      {errors.length > 0 && (
+        <div className="mb-6 bg-red-50 border-2 border-red-200 rounded-lg p-4">
+          <h3 className="font-semibold text-red-900 mb-2">Please fix the following errors:</h3>
+          <ul className="list-disc list-inside text-sm text-red-800">
+            {errors.map((error, idx) => (
+              <li key={idx}>{error}</li>
+            ))}
+          </ul>
+        </div>
+      )}
+
+      <form onSubmit={handleSubmit} className="bg-white rounded-xl shadow-lg p-8">
+        <div className="space-y-8">
+          
+          {/* Required Fields Section */}
+          <div>
+            <h2 className="text-xl font-semibold text-gray-900 mb-4 pb-2 border-b">Required Information</h2>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label htmlFor="firstName" className="block text-sm font-medium text-gray-700 mb-2">
+                  <User className="h-4 w-4 inline mr-1" />
+                  First Name *
+                </label>
+                <input
+                  type="text"
+                  id="firstName"
+                  name="firstName"
+                  value={formData.firstName}
+                  onChange={handleChange}
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  required
+                />
+              </div>
+              <div>
+                <label htmlFor="lastName" className="block text-sm font-medium text-gray-700 mb-2">
+                  Last Name *
+                </label>
+                <input
+                  type="text"
+                  id="lastName"
+                  name="lastName"
+                  value={formData.lastName}
+                  onChange={handleChange}
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  required
+                />
+              </div>
             </div>
-            <div>
-              <label htmlFor="lastName" className="block text-sm font-medium text-gray-700 mb-2">
-                Last Name *
-              </label>
-              <input
-                type="text"
-                id="lastName"
-                name="lastName"
-                value={formData.lastName}
-                onChange={handleChange}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                required
-              />
+          </div>
+
+          {/* Basic Contact Info */}
+          <div>
+            <h2 className="text-xl font-semibold text-gray-900 mb-4 pb-2 border-b">Contact Information</h2>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label htmlFor="goesBy" className="block text-sm font-medium text-gray-700 mb-2">
+                  Goes By / Preferred Name
+                </label>
+                <input
+                  type="text"
+                  id="goesBy"
+                  name="goesBy"
+                  value={formData.goesBy}
+                  onChange={handleChange}
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  placeholder="Nickname or preferred name"
+                />
+              </div>
+              <div>
+                <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">
+                  <Mail className="h-4 w-4 inline mr-1" />
+                  Email
+                </label>
+                <input
+                  type="email"
+                  id="email"
+                  name="email"
+                  value={formData.email}
+                  onChange={handleChange}
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                />
+              </div>
+              <div>
+                <label htmlFor="phone" className="block text-sm font-medium text-gray-700 mb-2">
+                  <Phone className="h-4 w-4 inline mr-1" />
+                  Phone
+                </label>
+                <input
+                  type="tel"
+                  id="phone"
+                  name="phone"
+                  value={formData.phone}
+                  onChange={handleChange}
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  placeholder="(555) 123-4567"
+                />
+              </div>
+              <div>
+                <label htmlFor="title" className="block text-sm font-medium text-gray-700 mb-2">
+                  <Briefcase className="h-4 w-4 inline mr-1" />
+                  Job Title
+                </label>
+                <input
+                  type="text"
+                  id="title"
+                  name="title"
+                  value={formData.title}
+                  onChange={handleChange}
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  placeholder="Job title or role"
+                />
+              </div>
             </div>
           </div>
 
-          {/* Email */}
+          {/* Company Information */}
           <div>
-            <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">
-              <Mail className="h-4 w-4 inline mr-1" />
-              Email *
-            </label>
-            <input
-              type="email"
-              id="email"
-              name="email"
-              value={formData.email}
-              onChange={handleChange}
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-              required
-            />
+            <h2 className="text-xl font-semibold text-gray-900 mb-4 pb-2 border-b">Company Information</h2>
+            <div className="space-y-4">
+              <div>
+                <label htmlFor="companyName" className="block text-sm font-medium text-gray-700 mb-2">
+                  <Building2 className="h-4 w-4 inline mr-1" />
+                  Business Name
+                </label>
+                <input
+                  type="text"
+                  id="companyName"
+                  name="companyName"
+                  value={formData.companyName}
+                  onChange={handleChange}
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  placeholder="Company or organization name"
+                />
+                <p className="mt-1 text-xs text-gray-500">Company will be created/upserted separately and linked to this contact</p>
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label htmlFor="companyAddress" className="block text-sm font-medium text-gray-700 mb-2">
+                    Company Address
+                  </label>
+                  <input
+                    type="text"
+                    id="companyAddress"
+                    name="companyAddress"
+                    value={formData.companyAddress}
+                    onChange={handleChange}
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    placeholder="Street address"
+                  />
+                </div>
+                <div>
+                  <label htmlFor="companyIndustry" className="block text-sm font-medium text-gray-700 mb-2">
+                    Industry
+                  </label>
+                  <input
+                    type="text"
+                    id="companyIndustry"
+                    name="companyIndustry"
+                    value={formData.companyIndustry}
+                    onChange={handleChange}
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    placeholder="Industry or sector"
+                  />
+                </div>
+              </div>
+            </div>
           </div>
 
-          {/* Phone */}
+          {/* Pipeline Information */}
           <div>
-            <label htmlFor="phone" className="block text-sm font-medium text-gray-700 mb-2">
-              <Phone className="h-4 w-4 inline mr-1" />
-              Phone
-            </label>
-            <input
-              type="tel"
-              id="phone"
-              name="phone"
-              value={formData.phone}
-              onChange={handleChange}
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-              placeholder="(555) 123-4567"
-            />
+            <h2 className="text-xl font-semibold text-gray-900 mb-4 pb-2 border-b">Deal Pipeline</h2>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label htmlFor="pipeline" className="block text-sm font-medium text-gray-700 mb-2">
+                  <Filter className="h-4 w-4 inline mr-1" />
+                  Pipeline Type
+                </label>
+                <select
+                  id="pipeline"
+                  name="pipeline"
+                  value={formData.pipeline}
+                  onChange={handleChange}
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                >
+                  <option value="">Select pipeline...</option>
+                  {pipelineOptions.map(pipeline => (
+                    <option key={pipeline} value={pipeline}>
+                      {pipeline.charAt(0).toUpperCase() + pipeline.slice(1)}
+                    </option>
+                  ))}
+                </select>
+                <p className="mt-1 text-xs text-gray-500">Optional - can be set later</p>
+              </div>
+              {formData.pipeline && pipelineStages.length > 0 && (
+                <div>
+                  <label htmlFor="stage" className="block text-sm font-medium text-gray-700 mb-2">
+                    Pipeline Stage
+                  </label>
+                  <select
+                    id="stage"
+                    name="stage"
+                    value={formData.stage}
+                    onChange={handleChange}
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  >
+                    <option value="">Select stage...</option>
+                    {pipelineStages.map(stage => (
+                      <option key={stage} value={stage}>
+                        {stage.charAt(0).toUpperCase() + stage.slice(1)}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              )}
+            </div>
           </div>
 
-          {/* Company */}
+          {/* Additional Information */}
           <div>
-            <label htmlFor="company" className="block text-sm font-medium text-gray-700 mb-2">
-              <Building2 className="h-4 w-4 inline mr-1" />
-              Company
-            </label>
-            <input
-              type="text"
-              id="company"
-              name="company"
-              value={formData.company}
-              onChange={handleChange}
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-              placeholder="Company name"
-            />
-          </div>
-
-          {/* Title */}
-          <div>
-            <label htmlFor="title" className="block text-sm font-medium text-gray-700 mb-2">
-              <Briefcase className="h-4 w-4 inline mr-1" />
-              Job Title
-            </label>
-            <input
-              type="text"
-              id="title"
-              name="title"
-              value={formData.title}
-              onChange={handleChange}
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-              placeholder="Job title or role"
-            />
-          </div>
-
-          {/* Notes */}
-          <div>
-            <label htmlFor="notes" className="block text-sm font-medium text-gray-700 mb-2">
-              Notes
-            </label>
-            <textarea
-              id="notes"
-              name="notes"
-              value={formData.notes}
-              onChange={handleChange}
-              rows={3}
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-              placeholder="Additional information about this contact..."
-            />
+            <h2 className="text-xl font-semibold text-gray-900 mb-4 pb-2 border-b">Additional Information</h2>
+            <div className="space-y-4">
+              <div>
+                <label htmlFor="notes" className="block text-sm font-medium text-gray-700 mb-2">
+                  <FileText className="h-4 w-4 inline mr-1" />
+                  Notes
+                </label>
+                <textarea
+                  id="notes"
+                  name="notes"
+                  value={formData.notes}
+                  onChange={handleChange}
+                  rows={4}
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  placeholder="Tell us what may be important to a deal, relationship context, or any other relevant information..."
+                />
+                <p className="mt-1 text-xs text-gray-500">
+                  <Info className="h-3 w-3 inline mr-1" />
+                  Include information that may be important to a deal or relationship
+                </p>
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label htmlFor="howMet" className="block text-sm font-medium text-gray-700 mb-2">
+                    How We Met
+                  </label>
+                  <input
+                    type="text"
+                    id="howMet"
+                    name="howMet"
+                    value={formData.howMet}
+                    onChange={handleChange}
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    placeholder="e.g., Conference, Referral, LinkedIn"
+                  />
+                </div>
+                <div>
+                  <label htmlFor="buyerDecision" className="block text-sm font-medium text-gray-700 mb-2">
+                    Buyer Decision Type
+                  </label>
+                  <input
+                    type="text"
+                    id="buyerDecision"
+                    name="buyerDecision"
+                    value={formData.buyerDecision}
+                    onChange={handleChange}
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    placeholder="e.g., Senior Person, Product User"
+                  />
+                </div>
+              </div>
+              <div>
+                <label htmlFor="photoURL" className="block text-sm font-medium text-gray-700 mb-2">
+                  Photo URL
+                </label>
+                <input
+                  type="url"
+                  id="photoURL"
+                  name="photoURL"
+                  value={formData.photoURL}
+                  onChange={handleChange}
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  placeholder="https://..."
+                />
+              </div>
+            </div>
           </div>
         </div>
 
         {/* Actions */}
-        <div className="flex gap-3 mt-8">
+        <div className="flex gap-3 mt-8 pt-6 border-t">
           <button
             type="button"
             onClick={() => navigate('/contacts')}
@@ -243,10 +502,9 @@ export default function ContactManual() {
       {/* Help Text */}
       <div className="mt-6 bg-blue-50 border border-blue-200 rounded-lg p-4">
         <p className="text-sm text-blue-800">
-          <strong>💡 Tip:</strong> You can add multiple contacts quickly by clicking "OK" when prompted to add another.
+          <strong>💡 Tip:</strong> Only First Name and Last Name are required. All other fields are optional and can be added or updated later.
         </p>
       </div>
     </div>
   );
 }
-
