@@ -175,6 +175,106 @@ GET    /api/pipelines/config                       → Get pipeline config, buye
 
 ---
 
+## Contact Pages Architecture
+
+### Core Contact Management Pages
+
+| Page | Route | Purpose | Status |
+|------|-------|---------|--------|
+| **ContactsHub** | `/contacts` | Main navigation hub (6 core actions) | ✅ Refactored |
+| **ContactUpload** | `/contacts/upload` | Entry point for adding contacts | ✅ Working |
+| **ContactManual** | `/contacts/manual` | Manual contact entry form | ✅ Working |
+| **ContactList** | `/contacts/list` | View all contacts (table view) | ✅ Working |
+| **ContactListManager** | `/contacts/list-manager` | Manage all contact lists | ✅ Working |
+| **ContactListBuilder** | `/contacts/list-builder` | Build new lists (wizard) | ✅ Working |
+| **ContactListView** | `/contacts/list-view` | Select contacts for list | ✅ Working |
+| **ContactListDetail** | `/contacts/list-detail/:id` | View specific list | ✅ Working |
+| **ContactManageHome** | `/contacts/manage-home` | ⚠️ Campaign lists (overlaps) | ⚠️ Deprecate |
+| **Companies** | `/contacts/companies` | Manage businesses | ✅ Working |
+| **DealPipelines** | `/contacts/deal-pipelines` | Pipeline visualization | ✅ Working |
+
+### Page Responsibilities
+
+**1. Contact Upload (`/contacts/upload`)**
+- Entry point for adding contacts
+- Routes to: ContactManual (manual entry) or CSV upload flow
+- Status: ✅ Working
+
+**2. View Contacts (`/contacts/list`)**
+- Fetches all contacts from `/api/contacts?companyHQId=xxx`
+- Displays in table with search and pipeline filters
+- Shows: Name, Email, Phone, Company, Pipeline, Stage
+- Status: ✅ Working
+
+**3. Contact Lists (`/contacts/list-manager`)**
+- Main list management hub
+- Shows all contact lists for the org
+- Conflict detection (sent in campaign, in draft, etc.)
+- Actions: Use, Resolve Conflicts, Duplicate, Delete, Unassign
+- Routes to CampaignCreator when using a list
+- Status: ✅ Working
+
+**4. View Lists (`/contacts/list-detail/:listId`)**
+- View and manage a specific contact list
+- Hydrates contacts for a specific list
+- Shows list details and all contacts in that list
+- Can edit list, remove contacts, etc.
+- Status: ✅ Working
+- Route: Accessed from ContactListManager
+
+**5. Add Business (`/contacts/companies`)**
+- Manage prospect/client companies
+- View all companies, add new, edit details
+- Status: ✅ Working
+- Note: Companies are also auto-created when adding contacts
+
+**6. See Deal Pipeline (`/contacts/deal-pipelines`)**
+- Visual kanban/board view of contacts by pipeline stage
+- Filter by persona, pipeline type
+- Visual pipeline management
+- Status: ✅ Working
+
+### Supporting Pages (Internal Use)
+
+**ContactListBuilder (`/contacts/list-builder`)**
+- Build new contact lists (wizard flow)
+- Step 1: Select list type (All Contacts, Org Members, Event Contacts, Custom)
+- Step 2: Routes to ContactListView to select contacts
+- Step 3: Creates list and routes to ContactListManager
+- Status: ✅ Working
+
+**ContactListView (`/contacts/list-view`)**
+- Select contacts for list building
+- Shows contacts based on list type
+- Allows selecting/deselecting contacts
+- Creates list from selected contacts
+- Status: ✅ Working
+- Access: From ContactListBuilder
+
+**ContactManageHome (`/contacts/manage-home`)**
+- ⚠️ **DEPRECATED/OVERLAPPING** - Campaign lists management
+- Similar to ContactListManager but focused on campaign lists
+- Status: ⚠️ Needs consolidation - overlaps with ContactListManager
+- Action: Consider removing or merging into ContactListManager
+
+### List Management Consolidation
+
+**Current Problem**: Lists were scattered across multiple pages
+- ContactListManager - Main management ✅
+- ContactListBuilder - Creation wizard ✅
+- ContactListView - Selection interface ✅
+- ContactListDetail - List detail view ✅
+- ContactManageHome - ⚠️ Overlaps with ContactListManager
+
+**Solution**: 
+- **ContactListManager** = Main hub for all list operations
+- **ContactListBuilder** = Creation flow (wizard)
+- **ContactListDetail** = View specific list (from manager)
+- **ContactListView** = Selection interface (internal, from builder)
+- **ContactManageHome** = ⚠️ Deprecate or merge into ContactListManager
+
+---
+
 ## Services
 
 ### PipelineTriggerService
