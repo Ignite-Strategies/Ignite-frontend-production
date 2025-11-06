@@ -49,7 +49,7 @@ const routesWithSidebar = [
   '/roadmap',
   '/insights',
   '/contacts',
-  '/contacts/list',
+  '/contacts/view',
   '/relationship',
   '/nurture'
 ];
@@ -77,7 +77,7 @@ import ContactListView from './pages/contacts/ContactListView';
 import ContactListDetail from './pages/contacts/ContactListDetail';
 import ContactListBuilder from './pages/contacts/ContactListBuilder';
 import ContactManageHome from './pages/contacts/ContactManageHome';
-import ContactList from './pages/contacts/ContactList';
+import ContactsView from './pages/contacts/ContactsView';
 import Companies from './pages/contacts/Companies';
 import DealPipelines from './pages/contacts/DealPipelines';
 import DemoContactList from './pages/contacts/DemoContactList';
@@ -181,7 +181,7 @@ function App() {
           {/* Contacts */}
           <Route path="/contacts/all-pages" element={<ContactAllPages />} />
           <Route path="/contacts" element={<ContactsHub />} />
-          <Route path="/contacts/list" element={<ContactList />} />
+          <Route path="/contacts/view" element={<ContactsView />} />
           <Route path="/contacts/upload" element={<ContactUpload />} />
           <Route path="/contacts/manual" element={<ContactManual />} />
           <Route path="/contacts/list-manager" element={<ContactListManager />} />

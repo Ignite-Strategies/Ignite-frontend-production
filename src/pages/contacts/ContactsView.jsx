@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { Users, Mail, Phone, Building2, Filter, Search, Plus, Trash2 } from 'lucide-react';
 import api from '../../lib/api';
 
-export default function ContactList() {
+export default function ContactsView() {
   const navigate = useNavigate();
   const [contacts, setContacts] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -238,7 +238,7 @@ export default function ContactList() {
           </div>
         </div>
         
-        {/* Contact List */}
+        {/* Contacts Table */}
         {filteredContacts.length === 0 ? (
           <div className="bg-white rounded-lg shadow p-12 text-center">
             <Users className="h-16 w-16 text-gray-400 mx-auto mb-4" />
@@ -325,3 +325,4 @@ export default function ContactList() {
     </div>
   );
 }
+

@@ -92,8 +92,8 @@ export default function ContactsHub() {
     {
       id: 'view',
       title: 'View Contacts',
-      description: 'See all your contacts in a table',
-      route: '/contacts/list',
+      description: 'See all your contacts (people) in a table',
+      route: '/contacts/view',
       icon: Users,
       color: 'indigo',
       gradient: 'from-indigo-50 to-indigo-100',
@@ -103,7 +103,7 @@ export default function ContactsHub() {
     {
       id: 'lists',
       title: 'Contact Lists',
-      description: 'Manage all your contact lists',
+      description: 'Manage collections of contacts for campaigns',
       route: '/contacts/list-manager',
       icon: List,
       color: 'purple',
@@ -230,10 +230,10 @@ export default function ContactsHub() {
               <strong className="text-gray-900">Contact Upload:</strong> Add contacts one-by-one or bulk via CSV
             </div>
             <div>
-              <strong className="text-gray-900">View Contacts:</strong> See all contacts in a searchable table
+              <strong className="text-gray-900">View Contacts:</strong> See all your contacts (people) in a searchable table
             </div>
             <div>
-              <strong className="text-gray-900">Contact Lists:</strong> Create and manage lists for campaigns
+              <strong className="text-gray-900">Contact Lists:</strong> Create and manage collections of contacts for campaigns
             </div>
             <div>
               <strong className="text-gray-900">View Lists:</strong> Open specific lists to see contacts

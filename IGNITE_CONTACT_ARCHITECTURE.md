@@ -48,10 +48,11 @@ The contact management system is designed around a three-stage framework:
    - Entry point for the "Attract" phase
    - Routes to manual entry form or CSV upload flow
 
-2. **View Contacts** → `/contacts/list`
-   - See all your contacts in a table
-   - Searchable, filterable contact list
+2. **View Contacts** → `/contacts/view`
+   - See all your contacts (people) in a table
+   - Searchable, filterable contact view
    - Shows: Name, Email, Phone, Company, Pipeline, Stage
+   - **Note**: This is for viewing contacts (people), NOT contact lists (collections)
 
 3. **Contact Lists** → `/contacts/list-manager`
    - Manage all your contact lists
@@ -260,7 +261,7 @@ GET    /api/pipelines/config                       → Get pipeline config, buye
 | **ContactsHub** | `/contacts` | Main navigation hub (6 core actions) | ✅ Refactored |
 | **ContactUpload** | `/contacts/upload` | Entry point for adding contacts | ✅ Working |
 | **ContactManual** | `/contacts/manual` | Manual contact entry form | ✅ Working |
-| **ContactList** | `/contacts/list` | View all contacts (table view) | ✅ Working |
+| **ContactsView** | `/contacts/view` | View all contacts (people) in a table | ✅ Working |
 | **ContactListManager** | `/contacts/list-manager` | Manage all contact lists | ✅ Working |
 | **ContactListBuilder** | `/contacts/list-builder` | Build new lists (wizard) | ✅ Working |
 | **ContactListView** | `/contacts/list-view` | Select contacts for list | ✅ Working |
@@ -276,10 +277,12 @@ GET    /api/pipelines/config                       → Get pipeline config, buye
 - Routes to: ContactManual (manual entry) or CSV upload flow
 - Status: ✅ Working
 
-**2. View Contacts (`/contacts/list`)**
+**2. View Contacts (`/contacts/view`)**
+- **Purpose**: View all contacts (people) - NOT contact lists (collections)
 - Fetches all contacts from `/api/contacts?companyHQId=xxx`
 - Displays in table with search and pipeline filters
 - Shows: Name, Email, Phone, Company, Pipeline, Stage
+- Has delete button for each contact
 - Status: ✅ Working
 
 **3. Contact Lists (`/contacts/list-manager`)**
@@ -421,7 +424,7 @@ GET    /api/pipelines/config                       → Get pipeline config, buye
 
 ### ✅ Completed (Phase 2)
 
-1. ✅ **Frontend: Contact list display** - ContactList page shows all contacts in table
+1. ✅ **Frontend: Contact view display** - ContactsView page shows all contacts (people) in table
 2. ✅ **Frontend: ContactsHub refactor** - Clean 6-action navigation structure
 3. ✅ **Frontend: Navigation consolidation** - Clear routing, no duplicate pages
 
