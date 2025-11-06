@@ -188,6 +188,22 @@ export default function ContactManual() {
       console.log('📦 Response data:', response.data);
       console.log('📦 Contact object:', response.data?.contact);
 
+      // Refresh contacts in localStorage
+      try {
+        const companyHQId = localStorage.getItem('companyHQId');
+        if (companyHQId) {
+          console.log('🔄 Refreshing contacts in localStorage...');
+          const refreshResponse = await api.get(`/api/contacts?companyHQId=${companyHQId}`);
+          if (refreshResponse.data.success && refreshResponse.data.contacts) {
+            localStorage.setItem('contacts', JSON.stringify(refreshResponse.data.contacts));
+            console.log('✅ Contacts refreshed in localStorage:', refreshResponse.data.contacts.length);
+          }
+        }
+      } catch (refreshError) {
+        console.warn('⚠️ Could not refresh contacts in localStorage:', refreshError);
+        // Don't block success - just log warning
+      }
+
       // Show success state inline
       const successData = {
         firstName: formData.firstName,

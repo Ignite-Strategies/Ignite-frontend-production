@@ -6,27 +6,115 @@
 
 ---
 
-## Architecture Overview
+## Premise
 
-### Contact Model - Universal Personhood Container
+**Manage contacts as a path to business development.**
+
+The contact management system is designed around a three-stage framework:
+
+### Attract → Engage → Nurture
+
+**Attract:**
+- Much of it is funnel-driven
+- Significant manual input and hydration via Microsoft 365
+- Basic contact upload is the first step when users create a company
+
+**Engage:**
+- Pipeline tracking (prospect → client conversion)
+- Relationship context (how we met, buyer decision type)
+- Company association and enrichment
+
+**Nurture:**
+- Contact lists for campaigns
+- Pipeline stage management
+- Renewal and sustainment tracking
+
+### User Journey
+
+1. **Initial Setup**: Basic contact upload is the first step when users create a company (via SetupWizard)
+2. **Primary Hub**: From there, users mainly use **ContactsHub** (`/contacts`) as the basic home for all contact management
+3. **Workflow**: ContactsHub provides 6 core actions that cover the entire attract-engage-nurture cycle
+
+---
+
+## ContactsHub Features
+
+**ContactsHub** (`/contacts`) is the central navigation hub for all contact management.
+
+### 6 Core Actions
+
+1. **Contact Upload** → `/contacts/upload`
+   - Add contacts manually or via CSV
+   - Entry point for the "Attract" phase
+   - Routes to manual entry form or CSV upload flow
+
+2. **View Contacts** → `/contacts/list`
+   - See all your contacts in a table
+   - Searchable, filterable contact list
+   - Shows: Name, Email, Phone, Company, Pipeline, Stage
+
+3. **Contact Lists** → `/contacts/list-manager`
+   - Manage all your contact lists
+   - Create lists for campaigns
+   - Conflict detection and list management
+
+4. **View Lists** → `/contacts/list-manager`
+   - View and manage specific lists
+   - Access from Contact Lists page
+   - Hydrates contacts for specific lists
+
+5. **Add Business** → `/contacts/companies`
+   - Manage prospect/client companies
+   - View all companies, add new, edit details
+   - Companies are also auto-created when adding contacts
+
+6. **See Deal Pipeline** → `/contacts/deal-pipelines`
+   - Visual pipeline management
+   - Kanban/board view of contacts by pipeline stage
+   - Filter by persona, pipeline type
+
+**Status**: ✅ Refactored - Clean 6-action structure
+
+---
+
+## Contact-First Architecture
+
+### What is a Contact?
 
 **Contact** = Universal personhood container that represents a person across their entire journey
 
-**Core Fields:**
+A Contact is not just a name and email—it's a complete record of a person's relationship with your organization, from first touchpoint through client lifecycle and beyond.
+
+### Core Contact Fields
+
+**Identity:**
 - `id` - Contact ID
-- `companyId` - CompanyHQId (tenant identifier - direct relationship)
 - `firstName`, `lastName`, `goesBy` - Name fields
 - `email`, `phone`, `title` - Contact info
+
+**Context:**
+- `companyId` - CompanyHQId (tenant identifier - direct relationship)
 - `contactCompanyId` - Reference to Company (the company they work for)
 - `buyerDecision` - Buyer decision maker type (dropdown: Senior Person, Product User, Has Money)
 - `howMet` - How we met/know this person (dropdown: Personal Relationship, Referral, Met at Event/Conference, Cold Outreach)
 - `notes` - Notes/context about the contact
+
+**Pipeline:**
 - `pipeline` - Pipeline relationship (one-to-one via Pipeline model)
 
 **Removed Fields:**
 - ~~`photoURL`~~ - Removed (will be scraped/enriched automatically)
 
-### Pipeline Model - Intentional Pipeline State
+### Why Contact-First?
+
+1. **Universal Personhood**: One Contact record represents a person across their entire journey—from prospect to client to collaborator
+2. **No Duplication**: A person is a person, regardless of which pipeline they're in
+3. **Relationship Continuity**: All interactions, notes, and context stay with the Contact
+4. **Pipeline Flexibility**: Contacts can move between pipelines (prospect → client) without losing history
+
+---
+
+## Pipeline Model - Intentional Pipeline State
 
 **Pipeline** = Separate model that hosts pipeline and stage fields
 
@@ -35,7 +123,7 @@
 - `stage` - Current stage (string value from pipeline config)
 - `contactId` - Unique reference to Contact (one Pipeline per Contact)
 
-**Pipeline Stages:**
+### Pipeline Stages
 
 **Prospect:**
 - `interest` - Initial interest expressed
@@ -62,7 +150,9 @@
 - When a contact reaches `contract-signed` in prospect pipeline → **automatically converts** to `client` pipeline with `kickoff` stage
 - Handled by `PipelineTriggerService`
 
-### Company Model - Prospect/Client Companies
+---
+
+## Company Model - Prospect/Client Companies
 
 **Company** = Companies that contacts work for (prospect/client companies)
 
@@ -88,10 +178,10 @@
 
 ### Contact Routes (All Implemented ✅)
 
-```
+```text
 GET    /api/contacts?companyHQId=xxx              → List all contacts for company
 GET    /api/contacts?companyHQId=xxx&pipeline=xxx → List contacts by pipeline
-GET    /api/contacts?companyHQId=xxx&stage=xxx    → List contacts by stage
+GET    /api/contacts?companyHQId=xxx&stage=xxx      → List contacts by stage
 GET    /api/contacts/:contactId                   → Get single contact
 POST   /api/contacts                               → Create contact
 POST   /api/contacts/universal-create              → Create contact + company + pipeline (used by ContactManual form)
@@ -101,7 +191,7 @@ DELETE /api/contacts/:contactId                   → Delete contact
 
 ### Config Routes
 
-```
+```text
 GET    /api/pipelines/config                       → Get pipeline config, buyerDecision types, howMet types
 ```
 
@@ -158,20 +248,6 @@ GET    /api/pipelines/config                       → Get pipeline config, buye
 - Fetches pipeline config, buyerDecision, and howMet options from backend
 - Auto-submits to `/api/contacts/universal-create`
 - Shows success state after creation
-
-### ContactsHub (`/contacts`) - Main Navigation Hub
-
-**Purpose**: Central entry point for all contact management features
-
-**6 Core Actions:**
-1. **Contact Upload** → `/contacts/upload` - Add contacts (manual or CSV)
-2. **View Contacts** → `/contacts/list` - See all contacts in table view
-3. **Contact Lists** → `/contacts/list-manager` - Manage all contact lists
-4. **View Lists** → `/contacts/list-manager` - View specific lists (accessed from list manager)
-5. **Add Business** → `/contacts/companies` - Manage prospect/client companies
-6. **See Deal Pipeline** → `/contacts/deal-pipelines` - Visual pipeline management
-
-**Status**: ✅ Refactored - Clean 6-action structure
 
 ---
 
@@ -422,4 +498,3 @@ model Pipeline {
 ---
 
 **Status**: ✅ Production Ready - Contact management fully functional with auto-enrichment and pipeline triggers!
-

@@ -1,8 +1,80 @@
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Upload, Users, List, Building2, Filter, ArrowRight } from 'lucide-react';
+import { Upload, Users, List, Building2, Filter, ArrowRight, RefreshCw } from 'lucide-react';
+import api from '../../lib/api';
 
 export default function ContactsHub() {
   const navigate = useNavigate();
+  const [hydrating, setHydrating] = useState(false);
+  const [hydrated, setHydrated] = useState(false);
+  const [contactCount, setContactCount] = useState(0);
+
+  // Hydrate contacts on mount
+  useEffect(() => {
+    hydrateContacts();
+  }, []);
+
+  const hydrateContacts = async () => {
+    const companyHQId = localStorage.getItem('companyHQId');
+    if (!companyHQId) {
+      console.warn('⚠️ No CompanyHQId found - cannot hydrate contacts');
+      return;
+    }
+
+    // Check if we already have contacts in localStorage
+    const cachedContacts = localStorage.getItem('contacts');
+    if (cachedContacts) {
+      try {
+        const contacts = JSON.parse(cachedContacts);
+        setContactCount(contacts.length);
+        setHydrated(true);
+        console.log('✅ Contacts already in localStorage:', contacts.length);
+        // Still refresh in background
+        refreshContacts(companyHQId);
+        return;
+      } catch (error) {
+        console.error('❌ Error parsing cached contacts:', error);
+      }
+    }
+
+    // No cache - fetch from API
+    await refreshContacts(companyHQId);
+  };
+
+  const refreshContacts = async (companyHQId) => {
+    try {
+      setHydrating(true);
+      console.log('🔄 Hydrating contacts from API...');
+      
+      const response = await api.get(`/api/contacts?companyHQId=${companyHQId}`);
+      
+      if (response.data.success && response.data.contacts) {
+        const contacts = response.data.contacts;
+        localStorage.setItem('contacts', JSON.stringify(contacts));
+        setContactCount(contacts.length);
+        setHydrated(true);
+        console.log('✅ Contacts hydrated and stored in localStorage:', contacts.length);
+      } else {
+        console.warn('⚠️ No contacts in response');
+        localStorage.setItem('contacts', JSON.stringify([]));
+        setContactCount(0);
+        setHydrated(true);
+      }
+    } catch (error) {
+      console.error('❌ Error hydrating contacts:', error);
+      // Don't block UI - just log error
+      setHydrated(true);
+    } finally {
+      setHydrating(false);
+    }
+  };
+
+  const handleRefresh = async () => {
+    const companyHQId = localStorage.getItem('companyHQId');
+    if (companyHQId) {
+      await refreshContacts(companyHQId);
+    }
+  };
 
   // 6 Core Contact Management Actions
   const coreActions = [
@@ -90,12 +162,36 @@ export default function ContactsHub() {
             Back to Dashboard
           </button>
           
-          <h1 className="text-4xl font-bold text-gray-900 mb-2">
-            👥 People Hub
-          </h1>
-          <p className="text-gray-600 text-lg">
-            Manage your contacts, lists, companies, and pipelines
-          </p>
+          <div className="flex items-center justify-between">
+            <div>
+              <h1 className="text-4xl font-bold text-gray-900 mb-2">
+                👥 People Hub
+              </h1>
+              <p className="text-gray-600 text-lg">
+                Manage your contacts, lists, companies, and pipelines
+              </p>
+            </div>
+            <div className="flex items-center gap-4">
+              {hydrated && (
+                <div className="text-right">
+                  <div className="text-sm text-gray-500">Contacts Loaded</div>
+                  <div className="text-2xl font-bold text-gray-900">{contactCount}</div>
+                </div>
+              )}
+              <button
+                onClick={handleRefresh}
+                disabled={hydrating}
+                className={`flex items-center gap-2 px-4 py-2 rounded-lg transition ${
+                  hydrating
+                    ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                    : 'bg-blue-600 text-white hover:bg-blue-700'
+                }`}
+              >
+                <RefreshCw className={`h-5 w-5 ${hydrating ? 'animate-spin' : ''}`} />
+                {hydrating ? 'Hydrating...' : 'Refresh'}
+              </button>
+            </div>
+          </div>
         </div>
 
         {/* Core Actions Grid - 6 Main Actions */}

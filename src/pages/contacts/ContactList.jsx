@@ -14,19 +14,43 @@ export default function ContactList() {
   const companyHQId = localStorage.getItem('companyHQId');
 
   useEffect(() => {
-    fetchContacts();
+    loadContacts();
   }, [companyHQId, pipelineFilter]);
 
-  const fetchContacts = async () => {
+  const loadContacts = async () => {
     if (!companyHQId) {
       console.warn('⚠️ No CompanyHQId found');
       setLoading(false);
       return;
     }
 
+    // First, try to load from localStorage (fast)
+    const cachedContacts = localStorage.getItem('contacts');
+    if (cachedContacts) {
+      try {
+        const contacts = JSON.parse(cachedContacts);
+        console.log('✅ Loaded contacts from localStorage:', contacts.length);
+        setContacts(contacts);
+        setLoading(false);
+        // Refresh in background to get latest data
+        refreshContactsFromAPI();
+        return;
+      } catch (error) {
+        console.error('❌ Error parsing cached contacts:', error);
+        // Fall through to API fetch
+      }
+    }
+
+    // No cache or parse error - fetch from API
+    await refreshContactsFromAPI();
+  };
+
+  const refreshContactsFromAPI = async () => {
+    if (!companyHQId) return;
+
     try {
       setLoading(true);
-      console.log('📡 Fetching contacts for companyHQId:', companyHQId);
+      console.log('📡 Fetching contacts from API for companyHQId:', companyHQId);
       
       // Build query params
       const params = new URLSearchParams({ companyHQId });
@@ -37,8 +61,14 @@ export default function ContactList() {
       const response = await api.get(`/api/contacts?${params.toString()}`);
       
       if (response.data.success && response.data.contacts) {
-        console.log('✅ Contacts fetched:', response.data.contacts.length);
-        setContacts(response.data.contacts);
+        const fetchedContacts = response.data.contacts;
+        console.log('✅ Contacts fetched from API:', fetchedContacts.length);
+        
+        // Update localStorage
+        localStorage.setItem('contacts', JSON.stringify(fetchedContacts));
+        
+        // Update state
+        setContacts(fetchedContacts);
       } else {
         console.warn('⚠️ No contacts in response');
         setContacts([]);
