@@ -1,24 +1,50 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Navigation from '../../components/Navigation';
+import api from '../../lib/api.js';
 
 export default function ProposalsList() {
   const navigate = useNavigate();
   const [searchQuery, setSearchQuery] = useState("");
+  const [proposals, setProposals] = useState([]);
+  const [loading, setLoading] = useState(true);
 
-  // Mock proposals data - in Phase 2, this will come from API
-  const proposals = [
-    {
-      id: 'businesspoint-law',
-      name: 'BusinessPoint Law',
-      company: 'BusinessPoint Law Firm',
-      status: 'active',
-      date: '2024-01-15',
-      total: 50000,
-      description: 'Comprehensive 12-month business development roadmap for debt-to-liquidity conversion services.'
-    },
-    // More proposals can be added here
-  ];
+  // Fetch proposals from API
+  useEffect(() => {
+    const loadProposals = async () => {
+      try {
+        const companyHQId = localStorage.getItem('companyHQId');
+        if (!companyHQId) {
+          console.error('CompanyHQId not found');
+          setLoading(false);
+          return;
+        }
+
+        const response = await api.get(`/api/proposals?companyHQId=${companyHQId}`);
+        if (response.data.success && response.data.proposals) {
+          // Transform API data to match component format
+          const transformedProposals = response.data.proposals.map(proposal => ({
+            id: proposal.id,
+            name: proposal.clientName,
+            company: proposal.clientCompany,
+            status: proposal.status,
+            date: proposal.dateIssued || proposal.createdAt,
+            total: proposal.totalPrice || 0,
+            description: proposal.purpose || 'No description provided.'
+          }));
+          setProposals(transformedProposals);
+        }
+      } catch (error) {
+        console.error('Failed to load proposals:', error);
+        // Keep empty array on error
+        setProposals([]);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadProposals();
+  }, []);
 
   const filteredProposals = proposals.filter(proposal =>
     proposal.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -90,8 +116,13 @@ export default function ProposalsList() {
           </div>
         </div>
 
-        {/* Proposals Grid */}
-        {filteredProposals.length === 0 ? (
+        {/* Loading State */}
+        {loading ? (
+          <div className="text-center py-12 bg-white rounded-xl border border-gray-200">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-red-600 mx-auto mb-4"></div>
+            <p className="text-gray-600">Loading proposals...</p>
+          </div>
+        ) : filteredProposals.length === 0 ? (
           <div className="text-center py-12 bg-white rounded-xl border border-gray-200">
             <p className="text-gray-500 text-lg mb-2">No proposals found</p>
             <p className="text-sm text-gray-400">

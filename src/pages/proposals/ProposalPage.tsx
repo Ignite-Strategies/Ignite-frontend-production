@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
+// @ts-ignore
 import Navigation from '../../components/Navigation';
 import ProposalHeader from './components/ProposalHeader';
 import ProposalPurpose from './components/ProposalPurpose';
@@ -10,6 +11,8 @@ import FeedbackBox from './components/FeedbackBox';
 import ApproveButton from './components/ApproveButton';
 import { Proposal } from './types';
 import proposalBusinessPointData from '../../data/proposals/proposalBusinessPoint.json';
+// @ts-ignore
+import api from '../../lib/api.js';
 
 export default function ProposalPage() {
   const { clientId } = useParams<{ clientId: string }>();
@@ -17,21 +20,51 @@ export default function ProposalPage() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // In Phase 2, this will fetch from API: /api/proposals/:clientId
-    // For now, load from local JSON based on clientId
     const loadProposal = async () => {
       setLoading(true);
       
-      // Simulate API call delay
-      await new Promise((resolve) => setTimeout(resolve, 300));
+      try {
+        // Try to fetch from API first (by proposal ID)
+        // If clientId looks like a proposal ID, fetch directly
+        if (clientId && clientId.length > 10) {
+          try {
+            const response = await api.get(`/api/proposals/${clientId}`);
+            if (response.data.success && response.data.proposal) {
+              const proposalData = response.data.proposal;
+              // Transform API response to Proposal type
+              setProposal({
+                id: proposalData.id,
+                clientName: proposalData.clientName,
+                clientCompany: proposalData.clientCompany,
+                dateIssued: proposalData.dateIssued || proposalData.createdAt,
+                status: proposalData.status,
+                purpose: proposalData.purpose || '',
+                preparedBy: proposalData.preparedBy || 'Ignite Strategies',
+                phases: proposalData.phases || [],
+                milestones: proposalData.milestones || [],
+                compensation: proposalData.compensation || { total: 0, currency: 'USD', breakdown: [], paymentSchedule: [] }
+              } as Proposal);
+              setLoading(false);
+              return;
+            }
+          } catch (apiError) {
+            console.log('API fetch failed, trying fallback...', apiError);
+          }
+        }
 
-      // Map clientId to data source
-      // In production, this would be: const response = await fetch(`/api/proposals/${clientId}`);
-      if (clientId === 'businesspoint-law') {
-        setProposal(proposalBusinessPointData as Proposal);
-      } else {
-        // Fallback to default for now
-        setProposal(proposalBusinessPointData as Proposal);
+        // Fallback: Load from local JSON for backward compatibility
+        if (clientId === 'businesspoint-law') {
+          setProposal(proposalBusinessPointData as Proposal);
+        } else {
+          // Default fallback
+          setProposal(proposalBusinessPointData as Proposal);
+        }
+      } catch (error) {
+        console.error('Failed to load proposal:', error);
+        // Fallback to JSON
+        if (clientId === 'businesspoint-law') {
+          setProposal(proposalBusinessPointData as Proposal);
+        }
       }
 
       setLoading(false);
@@ -115,15 +148,19 @@ export default function ProposalPage() {
         <div className="grid lg:grid-cols-3 gap-8 mb-8">
           {/* Left Column - Sections */}
           <div className="lg:col-span-2 space-y-8">
-            {proposal.phases.map((phase) => (
-              <ProposalSection key={phase.id} phase={phase} />
-            ))}
+            {proposal.phases && proposal.phases.length > 0 ? (
+              proposal.phases.map((phase: any) => (
+                <ProposalSection key={phase.id} phase={phase} />
+              ))
+            ) : (
+              <p className="text-gray-500">No phases defined</p>
+            )}
           </div>
 
           {/* Right Column - Timeline, Compensation, etc. */}
           <div className="space-y-8">
-            <MilestoneTimeline milestones={proposal.milestones} />
-            <CompensationCard compensation={proposal.compensation} />
+            {proposal.milestones && <MilestoneTimeline milestones={proposal.milestones} />}
+            {proposal.compensation && <CompensationCard compensation={proposal.compensation} />}
           </div>
         </div>
 

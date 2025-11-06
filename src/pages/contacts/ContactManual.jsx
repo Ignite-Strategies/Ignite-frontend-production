@@ -8,18 +8,18 @@ export default function ContactManual() {
   const navigate = useNavigate();
   const [formData, setFormData] = useState({
     // Required
-    firstName: '',
-    lastName: '',
+    firstName: 'Joel',
+    lastName: 'Gulick',
     
     // Basic contact info
     goesBy: '',
-    email: '',
+    email: 'joel.gulick@businesspointlaw.com',
     phone: '',
     title: '',
     
     // Company
-    companyName: '',
-    companyAddress: '',
+    companyName: 'BusinessPoint Law',
+    companyURL: '',
     companyIndustry: '',
     
     // Pipeline
@@ -29,42 +29,51 @@ export default function ContactManual() {
     // Additional
     notes: '',
     buyerDecision: '',
-    howMet: '',
-    photoURL: ''
+    howMet: ''
   });
   
   const [saving, setSaving] = useState(false);
   const [pipelineStages, setPipelineStages] = useState([]);
   const [pipelineConfig, setPipelineConfig] = useState(null);
+  const [buyerDecisionConfig, setBuyerDecisionConfig] = useState(null);
+  const [howMetConfig, setHowMetConfig] = useState(null);
   const [errors, setErrors] = useState([]);
   const [showSuccess, setShowSuccess] = useState(false);
   const [createdContact, setCreatedContact] = useState(null);
 
-  // Fetch pipeline config on mount
+  // Fetch pipeline config, buyerDecision, and howMet configs on mount
   useEffect(() => {
-    const fetchPipelineConfig = async () => {
+    const fetchConfigs = async () => {
       try {
         // Try to fetch from backend
         const response = await api.get('/api/pipelines/config');
-        if (response.data.success && response.data.pipelines) {
-          setPipelineConfig(response.data.pipelines);
-          console.log('✅ Pipeline config loaded from backend:', response.data.pipelines);
+        if (response.data.success) {
+          if (response.data.pipelines) {
+            setPipelineConfig(response.data.pipelines);
+          }
+          if (response.data.buyerDecision) {
+            setBuyerDecisionConfig(response.data.buyerDecision);
+          }
+          if (response.data.howMet) {
+            setHowMetConfig(response.data.howMet);
+          }
+          console.log('✅ Configs loaded from backend');
         } else {
           throw new Error('Invalid response format');
         }
       } catch (err) {
-        console.warn('⚠️ Could not fetch pipeline config from backend, using defaults:', err.message);
-        // Fallback to default config (matches backend config/pipelineConfig.js)
+        console.warn('⚠️ Could not fetch configs from backend, using defaults:', err.message);
+        // Fallback to default config
         setPipelineConfig({
-          prospect: ['interest', 'meeting', 'proposal', 'negotiation', 'qualified'],
-          client: ['onboarding', 'active', 'renewal', 'upsell'],
-          collaborator: ['initial', 'active', 'partnership'],
-          institution: ['awareness', 'engagement', 'partnership']
+          prospect: ['interest', 'meeting', 'proposal', 'contract', 'contract-signed'],
+          client: ['kickoff', 'work-started', 'work-delivered', 'sustainment', 'renewal', 'terminated-contract'],
+          collaborator: ['interest', 'meeting', 'moa', 'agreement'],
+          institution: ['interest', 'meeting', 'moa', 'agreement']
         });
       }
     };
     
-    fetchPipelineConfig();
+    fetchConfigs();
   }, []);
 
   // Update stages when pipeline changes
@@ -107,14 +116,13 @@ export default function ContactManual() {
       phone: '',
       title: '',
       companyName: '',
-      companyAddress: '',
+      companyURL: '',
       companyIndustry: '',
       pipeline: formData.pipeline, // Keep pipeline selection
       stage: '',
       notes: '',
       buyerDecision: '',
-      howMet: '',
-      photoURL: ''
+      howMet: ''
     });
     setShowSuccess(false);
     setCreatedContact(null);
@@ -349,21 +357,21 @@ export default function ContactManual() {
                   className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                   placeholder="Company or organization name"
                 />
-                <p className="mt-1 text-xs text-gray-500">Company will be created/upserted separately and linked to this contact</p>
+                <p className="mt-1 text-xs text-gray-500">Company details will be enriched automatically</p>
               </div>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <label htmlFor="companyAddress" className="block text-sm font-medium text-gray-700 mb-2">
-                    Company Address
+                  <label htmlFor="companyURL" className="block text-sm font-medium text-gray-700 mb-2">
+                    Company Website URL
                   </label>
                   <input
-                    type="text"
-                    id="companyAddress"
-                    name="companyAddress"
-                    value={formData.companyAddress}
+                    type="url"
+                    id="companyURL"
+                    name="companyURL"
+                    value={formData.companyURL}
                     onChange={handleChange}
                     className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                    placeholder="Street address"
+                    placeholder="https://example.com"
                   />
                 </div>
                 <div>
@@ -377,7 +385,7 @@ export default function ContactManual() {
                     value={formData.companyIndustry}
                     onChange={handleChange}
                     className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                    placeholder="Industry or sector"
+                    placeholder="Industry or sector (optional - can be inferred)"
                   />
                 </div>
               </div>
@@ -461,44 +469,40 @@ export default function ContactManual() {
                   <label htmlFor="howMet" className="block text-sm font-medium text-gray-700 mb-2">
                     How We Met
                   </label>
-                  <input
-                    type="text"
+                  <select
                     id="howMet"
                     name="howMet"
                     value={formData.howMet}
                     onChange={handleChange}
                     className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                    placeholder="e.g., Conference, Referral, LinkedIn"
-                  />
+                  >
+                    <option value="">Select how you met...</option>
+                    {howMetConfig && Object.entries(howMetConfig.labels).map(([value, label]) => (
+                      <option key={value} value={value}>
+                        {label}
+                      </option>
+                    ))}
+                  </select>
                 </div>
                 <div>
                   <label htmlFor="buyerDecision" className="block text-sm font-medium text-gray-700 mb-2">
                     Buyer Decision Type
                   </label>
-                  <input
-                    type="text"
+                  <select
                     id="buyerDecision"
                     name="buyerDecision"
                     value={formData.buyerDecision}
                     onChange={handleChange}
                     className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                    placeholder="e.g., Senior Person, Product User"
-                  />
+                  >
+                    <option value="">Select buyer type...</option>
+                    {buyerDecisionConfig && Object.entries(buyerDecisionConfig.labels).map(([value, label]) => (
+                      <option key={value} value={value}>
+                        {label}
+                      </option>
+                    ))}
+                  </select>
                 </div>
-              </div>
-              <div>
-                <label htmlFor="photoURL" className="block text-sm font-medium text-gray-700 mb-2">
-                  Photo URL
-                </label>
-                <input
-                  type="url"
-                  id="photoURL"
-                  name="photoURL"
-                  value={formData.photoURL}
-                  onChange={handleChange}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                  placeholder="https://..."
-                />
               </div>
             </div>
           </div>

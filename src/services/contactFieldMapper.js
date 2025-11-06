@@ -32,7 +32,6 @@ export function mapFormToContact(formData, companyHQId) {
     notes: formData.notes || null,
     buyerDecision: formData.buyerDecision || null,
     howMet: formData.howMet || null,
-    photoURL: formData.photoURL || null,
     
     // Company association (will be set after company upsert)
     contactCompanyId: null // Set after company upsert
@@ -51,9 +50,10 @@ export function mapFormToCompany(formData, companyHQId) {
   return {
     companyHQId: companyHQId,
     companyName: formData.companyName.trim(),
-    // Optional company fields can be added here
-    address: formData.companyAddress || null,
-    industry: formData.companyIndustry || null
+    // Optional company fields
+    industry: formData.companyIndustry || null,
+    // Note: companyURL would need to be added to Company model schema if needed
+    // For now, we'll skip it as it's not in the schema
   };
 }
 

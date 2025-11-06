@@ -103,7 +103,7 @@ export default function Welcome() {
 
     // Add a small delay to prevent jarring transitions
     const timer = setTimeout(() => {
-      hydrateOwner();
+    hydrateOwner();
     }, 500); // 500ms delay
 
     return () => clearTimeout(timer);
@@ -117,11 +117,11 @@ export default function Welcome() {
 
   // Show loading state while hydrating
   if (loading) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-red-600 via-red-700 to-red-800 flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-16 w-16 border-b-4 border-white mx-auto mb-4"></div>
-          <p className="text-white text-xl">Loading your account...</p>
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-red-600 via-red-700 to-red-800 flex items-center justify-center">
+      <div className="text-center">
+        <div className="animate-spin rounded-full h-16 w-16 border-b-4 border-white mx-auto mb-4"></div>
+        <p className="text-white text-xl">Loading your account...</p>
         </div>
       </div>
     );

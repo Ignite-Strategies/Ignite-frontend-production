@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import Navigation from '../../components/Navigation';
+import api from '../../lib/api.js';
 
 export default function ProposalBuilder() {
   const navigate = useNavigate();
@@ -103,9 +104,26 @@ export default function ProposalBuilder() {
 
   // Load proposal if editing
   useEffect(() => {
-    if (isEditing) {
-      // In production: fetch proposal from API
-      // For now, load from localStorage or mock
+    if (isEditing && proposalId) {
+      const loadProposal = async () => {
+        try {
+          const response = await api.get(`/api/proposals/${proposalId}`);
+          if (response.data.success && response.data.proposal) {
+            const proposalData = response.data.proposal;
+            setProposal({
+              clientName: proposalData.clientName || '',
+              clientCompany: proposalData.clientCompany || '',
+              purpose: proposalData.purpose || '',
+              serviceInstances: proposalData.serviceInstances || [],
+              phases: proposalData.phases || []
+            });
+          }
+        } catch (error) {
+          console.error('Failed to load proposal:', error);
+          alert('Failed to load proposal. Please try again.');
+        }
+      };
+      loadProposal();
     }
   }, [isEditing, proposalId]);
 
@@ -304,11 +322,51 @@ export default function ProposalBuilder() {
   const timeline = generateTimeline();
   const totalPrice = proposal.serviceInstances.reduce((sum, s) => sum + s.price, 0);
 
-  const handleSaveProposal = () => {
-    // In production: POST to API
-    console.log('Saving proposal:', proposal);
-    alert('Proposal saved! (In production, this would save to the database)');
-    navigate('/proposals');
+  const handleSaveProposal = async () => {
+    try {
+      // Get companyHQId from localStorage (set during owner hydration)
+      const companyHQId = localStorage.getItem('companyHQId');
+      if (!companyHQId) {
+        alert('CompanyHQId not found. Please log in again.');
+        return;
+      }
+
+      // Validate required fields
+      if (!proposal.clientName || !proposal.clientCompany || proposal.serviceInstances.length === 0) {
+        alert('Please fill in all required fields and add at least one service.');
+        return;
+      }
+
+      const proposalData = {
+        companyHQId,
+        clientName: proposal.clientName,
+        clientCompany: proposal.clientCompany,
+        purpose: proposal.purpose || null,
+        status: 'draft',
+        serviceInstances: proposal.serviceInstances,
+        phases: proposal.phases,
+        totalPrice: totalPrice
+      };
+
+      if (isEditing && proposalId) {
+        // Update existing proposal
+        const response = await api.put(`/api/proposals/${proposalId}`, proposalData);
+        if (response.data.success) {
+          alert('Proposal updated successfully!');
+          navigate('/proposals');
+        }
+      } else {
+        // Create new proposal
+        const response = await api.post('/api/proposals', proposalData);
+        if (response.data.success) {
+          alert('Proposal created successfully!');
+          navigate('/proposals');
+        }
+      }
+    } catch (error) {
+      console.error('Failed to save proposal:', error);
+      alert('Failed to save proposal. Please try again.');
+    }
   };
 
   return (
