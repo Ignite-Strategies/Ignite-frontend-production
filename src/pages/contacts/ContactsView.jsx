@@ -10,6 +10,8 @@ export default function ContactsView() {
   const [searchTerm, setSearchTerm] = useState('');
   const [pipelineFilter, setPipelineFilter] = useState('');
   const [deletingId, setDeletingId] = useState(null);
+  const [selectedContacts, setSelectedContacts] = useState(new Set());
+  const [bulkDeleting, setBulkDeleting] = useState(false);
 
   // Get CompanyHQId from localStorage
   const companyHQId = localStorage.getItem('companyHQId');
@@ -91,6 +93,63 @@ export default function ContactsView() {
     }
   };
 
+  const handleSelectContact = (contactId) => {
+    const newSelected = new Set(selectedContacts);
+    if (newSelected.has(contactId)) {
+      newSelected.delete(contactId);
+    } else {
+      newSelected.add(contactId);
+    }
+    setSelectedContacts(newSelected);
+  };
+
+  const handleSelectAll = () => {
+    if (selectedContacts.size === filteredContacts.length) {
+      setSelectedContacts(new Set());
+    } else {
+      setSelectedContacts(new Set(filteredContacts.map(c => c.id)));
+    }
+  };
+
+  const handleBulkDelete = async () => {
+    if (selectedContacts.size === 0) return;
+    
+    const count = selectedContacts.size;
+    if (!window.confirm(`Are you sure you want to delete ${count} contact${count !== 1 ? 's' : ''}?`)) {
+      return;
+    }
+
+    try {
+      setBulkDeleting(true);
+      console.log('🗑️ Bulk deleting contacts:', Array.from(selectedContacts));
+      
+      // Delete all selected contacts
+      const deletePromises = Array.from(selectedContacts).map(contactId =>
+        api.delete(`/api/contacts/${contactId}`)
+      );
+      
+      await Promise.all(deletePromises);
+      
+      console.log('✅ Bulk delete successful');
+      
+      // Remove from state
+      const updatedContacts = contacts.filter(c => !selectedContacts.has(c.id));
+      setContacts(updatedContacts);
+      
+      // Update localStorage
+      localStorage.setItem('contacts', JSON.stringify(updatedContacts));
+      
+      // Clear selection
+      setSelectedContacts(new Set());
+      
+    } catch (error) {
+      console.error('❌ Error bulk deleting contacts:', error);
+      alert('Failed to delete some contacts. Please try again.');
+    } finally {
+      setBulkDeleting(false);
+    }
+  };
+
   const handleDelete = async (contactId, e) => {
     e.stopPropagation(); // Prevent row click
     
@@ -112,6 +171,11 @@ export default function ContactsView() {
       
       // Update localStorage
       localStorage.setItem('contacts', JSON.stringify(updatedContacts));
+      
+      // Remove from selection if selected
+      const newSelected = new Set(selectedContacts);
+      newSelected.delete(contactId);
+      setSelectedContacts(newSelected);
       
     } catch (error) {
       console.error('❌ Error deleting contact:', error);
@@ -188,6 +252,20 @@ export default function ContactsView() {
               </p>
             </div>
             <div className="flex gap-3">
+              {selectedContacts.size > 0 && (
+                <button
+                  onClick={handleBulkDelete}
+                  disabled={bulkDeleting}
+                  className={`flex items-center gap-2 px-4 py-2 rounded-lg transition ${
+                    bulkDeleting
+                      ? 'bg-gray-400 text-white cursor-not-allowed'
+                      : 'bg-red-600 text-white hover:bg-red-700'
+                  }`}
+                >
+                  <Trash2 className="h-5 w-5" />
+                  Delete {selectedContacts.size}
+                </button>
+              )}
               <button
                 onClick={() => navigate('/contacts')}
                 className="bg-gray-600 text-white px-4 py-2 rounded-lg hover:bg-gray-700 transition"
@@ -259,14 +337,27 @@ export default function ContactsView() {
           </div>
         ) : (
           <div className="bg-white rounded-lg shadow">
-            <div className="p-6 border-b border-gray-200">
+            <div className="p-6 border-b border-gray-200 flex items-center justify-between">
               <h2 className="text-xl font-bold text-gray-900">Contacts ({filteredContacts.length})</h2>
+              {selectedContacts.size > 0 && (
+                <span className="text-sm text-gray-600">
+                  {selectedContacts.size} selected
+                </span>
+              )}
             </div>
             
             <div className="overflow-x-auto">
               <table className="w-full">
                 <thead className="bg-gray-50">
                   <tr>
+                    <th className="px-6 py-3 text-left">
+                      <input
+                        type="checkbox"
+                        checked={filteredContacts.length > 0 && selectedContacts.size === filteredContacts.length}
+                        onChange={handleSelectAll}
+                        className="rounded"
+                      />
+                    </th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Name</th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Email</th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Phone</th>
@@ -279,6 +370,15 @@ export default function ContactsView() {
                 <tbody className="divide-y divide-gray-200">
                   {filteredContacts.map((contact) => (
                     <tr key={contact.id} className="hover:bg-gray-50">
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <input
+                          type="checkbox"
+                          checked={selectedContacts.has(contact.id)}
+                          onChange={() => handleSelectContact(contact.id)}
+                          onClick={(e) => e.stopPropagation()}
+                          className="rounded"
+                        />
+                      </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
                         {contact.goesBy || `${contact.firstName || ''} ${contact.lastName || ''}`.trim() || 'Unnamed Contact'}
                         {contact.title && (
