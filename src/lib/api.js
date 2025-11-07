@@ -28,8 +28,16 @@ api.interceptors.request.use(
       }
     }
     
-    // Log request
-    console.log('🔥 API Request:', config.method.toUpperCase(), config.url, config.data);
+    // Log request with detailed payload inspection
+    console.log('🔥 API Request:', config.method.toUpperCase(), config.url);
+    if (config.data) {
+      console.log('📦 Request Data:', JSON.stringify(config.data, null, 2));
+      // Specifically check for contact.crmId if this is a contact creation
+      if (config.data.contact) {
+        console.log('🔍 contact.crmId in request:', config.data.contact.crmId);
+        console.log('🔍 contact object keys:', Object.keys(config.data.contact));
+      }
+    }
     return config;
   },
   (error) => {

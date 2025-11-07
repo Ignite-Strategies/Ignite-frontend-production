@@ -192,11 +192,17 @@ export default function ContactManual() {
 
       // Call universal contact create route
       console.log('🚀 Calling /api/contacts/universal-create...');
-      const response = await api.post('/api/contacts/universal-create', {
+      const requestPayload = {
         contact: contactData,
         company: companyData, // Can be null
         pipeline: pipelineData // Can be null
-      });
+      };
+      
+      console.log('📦 Full request payload:', JSON.stringify(requestPayload, null, 2));
+      console.log('🔍 Request payload.contact:', requestPayload.contact);
+      console.log('🔍 Request payload.contact.crmId:', requestPayload.contact?.crmId);
+      
+      const response = await api.post('/api/contacts/universal-create', requestPayload);
 
       console.log('✅ Contact created successfully!');
       console.log('📦 Response data:', response.data);
