@@ -20,7 +20,7 @@
 export function mapFormToContact(formData, companyHQId) {
   return {
     // Required
-    companyId: companyHQId, // CompanyHQId for multi-tenancy
+    crmId: companyHQId, // CompanyHQId for multi-tenancy (renamed from companyId to crmId)
     firstName: formData.firstName || null,
     lastName: formData.lastName || null,
     
