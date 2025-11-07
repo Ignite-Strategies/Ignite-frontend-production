@@ -25,7 +25,7 @@ const pipelineStyles = {
     text: 'text-blue-700',
     chip: 'bg-blue-100 text-blue-700',
     ring: 'ring-blue-400',
-    icon: '🧲'
+    icon: '📈'
   },
   client: {
     background: 'bg-green-50',
@@ -33,7 +33,7 @@ const pipelineStyles = {
     text: 'text-green-700',
     chip: 'bg-green-100 text-green-700',
     ring: 'ring-green-400',
-    icon: '🤝'
+    icon: '🏁'
   },
   collaborator: {
     background: 'bg-purple-50',
@@ -138,20 +138,6 @@ export default function DealPipelines() {
 
   const stageIds = activeStages;
 
-  const getStageTotal = (stageId) =>
-    getStageContacts(stageId).reduce(
-      (sum, contact) => sum + (contact.pipeline?.value || contact.dealValue || 0),
-      0
-    );
-
-  const formatCurrency = (amount) =>
-    new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency: 'USD',
-      minimumFractionDigits: 0,
-      maximumFractionDigits: 0
-    }).format(amount || 0);
-
   const getPipelineContactCount = (pipelineId) =>
     contacts.filter(
       (contact) => slugify(contact.pipeline?.pipeline) === slugify(pipelineId)
@@ -252,52 +238,44 @@ export default function DealPipelines() {
             </p>
           </div>
           <div className="text-sm text-gray-600">
-            Total Value:{' '}
+            Total Contacts:{' '}
             <span className="font-bold text-gray-900">
-              {formatCurrency(
-                activeStages.reduce((sum, stageId) => sum + getStageTotal(stageId), 0)
-              )}
+              {pipelineContacts.length + unassignedContacts.length}
             </span>
           </div>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4 mb-8">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3 mb-6">
           {stageIds.map((stageId) => {
             const count = getStageContacts(stageId).length;
             return (
               <div
                 key={stageId}
-                className="bg-white border border-gray-200 rounded-lg p-4 shadow-sm"
+                className="bg-white border border-gray-200 rounded-lg px-4 py-3 shadow-sm flex items-center justify-between"
               >
                 <div className="text-xs font-semibold text-gray-500 uppercase tracking-wide">
                   {formatLabel(stageId)}
                 </div>
-                <div className="mt-2 flex items-baseline gap-2">
-                  <span className="text-2xl font-bold text-gray-900">{count}</span>
-                  <span className="text-xs text-gray-500">
+                <div className="flex items-baseline gap-1 text-gray-900 font-semibold text-lg">
+                  <span>{count}</span>
+                  <span className="text-xs font-normal text-gray-500">
                     {count === 1 ? 'contact' : 'contacts'}
                   </span>
-                </div>
-                <div className="text-xs text-gray-500 mt-2">
-                  Value {formatCurrency(getStageTotal(stageId))}
                 </div>
               </div>
             );
           })}
-          <div className="bg-white border border-gray-200 rounded-lg p-4 shadow-sm">
+          <div className="bg-white border border-gray-200 rounded-lg px-4 py-3 shadow-sm flex items-center justify-between">
             <div className="text-xs font-semibold text-gray-500 uppercase tracking-wide">
               Unassigned
             </div>
-            <div className="mt-2 flex items-baseline gap-2">
-              <span className="text-2xl font-bold text-gray-900">
+            <div className="flex items-baseline gap-1 text-gray-900 font-semibold text-lg">
+              <span>
                 {unassignedContacts.length}
               </span>
-              <span className="text-xs text-gray-500">
+              <span className="text-xs font-normal text-gray-500">
                 {unassignedContacts.length === 1 ? 'contact' : 'contacts'}
               </span>
-            </div>
-            <div className="text-xs text-gray-500 mt-2">
-              Value {formatCurrency(getStageTotal(''))}
             </div>
           </div>
         </div>
@@ -318,9 +296,6 @@ export default function DealPipelines() {
                   </th>
                   <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Stage
-                  </th>
-                  <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Value
                   </th>
                   <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Actions
@@ -367,9 +342,6 @@ export default function DealPipelines() {
                               </option>
                             ))}
                           </select>
-                        </td>
-                        <td className="px-4 py-3 text-sm text-gray-600 text-right">
-                          {formatCurrency(contact.pipeline?.value || contact.dealValue || 0)}
                         </td>
                         <td className="px-4 py-3 text-sm text-right">
                           <button
