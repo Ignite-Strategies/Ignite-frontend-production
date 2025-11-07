@@ -1,6 +1,20 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { User, Building2, Mail, Phone, Briefcase, FileText, Filter, Info, CheckCircle, Plus, X } from 'lucide-react';
+import {
+  User,
+  Building2,
+  Mail,
+  Phone,
+  Briefcase,
+  FileText,
+  Filter,
+  CheckCircle,
+  Plus,
+  X,
+  TrendingUp,
+  Users,
+  Upload
+} from 'lucide-react';
 import { mapFormToContact, mapFormToCompany, mapFormToPipeline, validateContactForm, getPipelineStages } from '../../services/contactFieldMapper';
 import api from '../../lib/api';
 
@@ -8,17 +22,17 @@ export default function ContactManual() {
   const navigate = useNavigate();
   const [formData, setFormData] = useState({
     // Required
-    firstName: 'Joel',
-    lastName: 'Gulick',
+    firstName: '',
+    lastName: '',
     
     // Basic contact info
     goesBy: '',
-    email: 'joel.gulick@businesspointlaw.com',
+    email: '',
     phone: '',
     title: '',
     
     // Company
-    companyName: 'BusinessPoint Law',
+    companyName: '',
     companyURL: '',
     companyIndustry: '',
     
@@ -40,6 +54,34 @@ export default function ContactManual() {
   const [errors, setErrors] = useState([]);
   const [showSuccess, setShowSuccess] = useState(false);
   const [createdContact, setCreatedContact] = useState(null);
+
+  const formatLabel = (value) => {
+    if (!value) return '';
+    return value
+      .split(/[-_]/)
+      .map((chunk) => chunk.charAt(0).toUpperCase() + chunk.slice(1))
+      .join(' ');
+  };
+
+  const resetForm = (keepPipeline = true) => {
+    setFormData((prev) => ({
+      firstName: '',
+      lastName: '',
+      goesBy: '',
+      email: '',
+      phone: '',
+      title: '',
+      companyName: '',
+      companyURL: '',
+      companyIndustry: '',
+      pipeline: keepPipeline ? prev.pipeline : '',
+      stage: '',
+      notes: '',
+      buyerDecision: '',
+      howMet: ''
+    }));
+    setErrors([]);
+  };
 
   // Fetch pipeline config, buyerDecision, and howMet configs on mount
   useEffect(() => {
@@ -108,25 +150,9 @@ export default function ContactManual() {
 
   const handleAddAnother = () => {
     // Reset form but keep pipeline selection
-    setFormData({
-      firstName: '',
-      lastName: '',
-      goesBy: '',
-      email: '',
-      phone: '',
-      title: '',
-      companyName: '',
-      companyURL: '',
-      companyIndustry: '',
-      pipeline: formData.pipeline, // Keep pipeline selection
-      stage: '',
-      notes: '',
-      buyerDecision: '',
-      howMet: ''
-    });
+    resetForm(true);
     setShowSuccess(false);
     setCreatedContact(null);
-    setErrors([]);
     // Scroll to top
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
@@ -225,6 +251,7 @@ export default function ContactManual() {
       }
 
       // Show success state inline
+      const createdContactId = response.data?.contact?.id;
       const successData = {
         firstName: formData.firstName,
         lastName: formData.lastName,
@@ -233,12 +260,16 @@ export default function ContactManual() {
         companyName: formData.companyName,
         title: formData.title,
         pipeline: formData.pipeline,
-        stage: formData.stage
+        pipelineLabel: formatLabel(formData.pipeline),
+        stage: formData.stage,
+        stageLabel: formatLabel(formData.stage),
+        contactId: createdContactId
       };
       console.log('🎉 Setting success state with data:', successData);
       setCreatedContact(successData);
       setShowSuccess(true);
       console.log('✅ Success state set, form should show success message');
+      resetForm(true);
       
       // Scroll to top to show success message
       window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -267,31 +298,25 @@ export default function ContactManual() {
         <div className="flex items-center gap-3 mb-4">
           <button
             onClick={() => navigate('/growth-dashboard')}
-            className="flex items-center text-gray-600 hover:text-gray-900"
+            className="flex items-center gap-2 text-gray-600 hover:text-gray-900 transition"
           >
-            <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
-            </svg>
-            Dashboard
+            <TrendingUp className="h-5 w-5" />
+            Growth Dashboard
           </button>
           <span className="text-gray-400">|</span>
           <button
             onClick={() => navigate('/contacts')}
-            className="flex items-center text-gray-600 hover:text-gray-900"
+            className="flex items-center gap-2 text-gray-600 hover:text-gray-900 transition"
           >
-            <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
-            </svg>
-            People
+            <Users className="h-5 w-5" />
+            People Hub
           </button>
           <span className="text-gray-400">|</span>
           <button
             onClick={() => navigate('/contacts/upload')}
-            className="flex items-center text-gray-600 hover:text-gray-900"
+            className="flex items-center gap-2 text-gray-600 hover:text-gray-900 transition"
           >
-            <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-            </svg>
+            <Upload className="h-5 w-5" />
             Upload Options
           </button>
         </div>
@@ -306,40 +331,91 @@ export default function ContactManual() {
 
       {/* Success Display */}
       {showSuccess && createdContact && (
-        <div className="mb-6 bg-green-50 border-2 border-green-200 rounded-lg p-4">
-          <div className="flex items-start justify-between">
-            <div className="flex items-start gap-3">
-              <CheckCircle className="h-6 w-6 text-green-600 flex-shrink-0 mt-0.5" />
-              <div>
-                <h3 className="font-semibold text-green-900 mb-2">✅ Contact Created Successfully!</h3>
-                <p className="text-sm text-green-800 mb-2">
-                  <strong>{createdContact.firstName} {createdContact.lastName}</strong>
-                  {createdContact.email && ` (${createdContact.email})`}
-                  {createdContact.companyName && ` from ${createdContact.companyName}`}
-                  {createdContact.pipeline && ` - ${createdContact.pipeline} pipeline`}
-                </p>
-                <div className="flex gap-2 mt-3">
-                  <button
-                    onClick={handleAddAnother}
-                    className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition text-sm font-medium"
-                  >
-                    Add Another Contact
-                  </button>
-                  <button
-                    onClick={handleDismissSuccess}
-                    className="px-4 py-2 bg-green-100 text-green-800 rounded-lg hover:bg-green-200 transition text-sm font-medium"
-                  >
-                    Dismiss
-                  </button>
-                </div>
+        <div className="mb-6 bg-green-50 border-2 border-green-200 rounded-xl p-6 shadow-sm">
+          <div className="flex items-start gap-4">
+            <div className="flex-shrink-0">
+              <div className="h-12 w-12 rounded-full bg-green-600/10 text-green-700 flex items-center justify-center">
+                <CheckCircle className="h-7 w-7" />
               </div>
             </div>
-            <button
-              onClick={handleDismissSuccess}
-              className="text-green-600 hover:text-green-800 transition"
-            >
-              <X className="h-5 w-5" />
-            </button>
+            <div className="flex-1">
+              <div className="flex items-start justify-between gap-3">
+                <div>
+                  <h3 className="text-lg font-semibold text-green-900">Contact Created Successfully</h3>
+                  <p className="text-sm text-green-800 mt-2 space-x-1">
+                    <span>
+                      <strong>{createdContact.firstName} {createdContact.lastName}</strong>
+                      {createdContact.email && ` (${createdContact.email})`}
+                    </span>
+                    {createdContact.companyName && (
+                      <span>• {createdContact.companyName}</span>
+                    )}
+                    {createdContact.pipelineLabel && (
+                      <span>• {createdContact.pipelineLabel} pipeline</span>
+                    )}
+                    {createdContact.stageLabel && (
+                      <span>• Stage: {createdContact.stageLabel}</span>
+                    )}
+                  </p>
+                </div>
+                <button
+                  onClick={handleDismissSuccess}
+                  className="text-green-600 hover:text-green-800 transition"
+                >
+                  <X className="h-5 w-5" />
+                </button>
+              </div>
+
+              <div className="flex flex-wrap items-center gap-3 mt-4">
+                {createdContact.contactId && (
+                  <button
+                    onClick={() => navigate(`/contacts/${createdContact.contactId}`)}
+                    className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition text-sm font-medium"
+                  >
+                    View Contact
+                  </button>
+                )}
+                <button
+                  onClick={() => navigate('/contacts/view')}
+                  className="px-4 py-2 bg-white text-green-700 border border-green-200 rounded-lg hover:bg-green-100 transition text-sm font-medium"
+                >
+                  View Contacts
+                </button>
+                <button
+                  onClick={() => navigate('/contacts/deal-pipelines')}
+                  className="px-4 py-2 bg-white text-green-700 border border-green-200 rounded-lg hover:bg-green-100 transition text-sm font-medium"
+                >
+                  Pipeline Overview
+                </button>
+                <button
+                  onClick={() => navigate('/contacts')}
+                  className="px-4 py-2 bg-white text-green-700 border border-green-200 rounded-lg hover:bg-green-100 transition text-sm font-medium"
+                >
+                  People Hub
+                </button>
+                <button
+                  onClick={() => navigate('/growth-dashboard')}
+                  className="px-4 py-2 bg-white text-green-700 border border-green-200 rounded-lg hover:bg-green-100 transition text-sm font-medium"
+                >
+                  Growth Dashboard
+                </button>
+              </div>
+
+              <div className="flex flex-wrap gap-2 mt-4">
+                <button
+                  onClick={handleAddAnother}
+                  className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition text-sm font-medium"
+                >
+                  Add Another Contact
+                </button>
+                <button
+                  onClick={handleDismissSuccess}
+                  className="px-4 py-2 bg-green-100 text-green-800 rounded-lg hover:bg-green-200 transition text-sm font-medium"
+                >
+                  Dismiss
+                </button>
+              </div>
+            </div>
           </div>
         </div>
       )}
@@ -356,7 +432,7 @@ export default function ContactManual() {
         </div>
       )}
 
-      <form onSubmit={handleSubmit} className={`bg-white rounded-xl shadow-lg p-8 ${showSuccess ? 'opacity-50 pointer-events-none' : ''}`}>
+      <form onSubmit={handleSubmit} className="bg-white rounded-xl shadow-lg p-8">
         <div className="space-y-8">
           
           {/* Required Fields Section */}
@@ -532,7 +608,7 @@ export default function ContactManual() {
                   <option value="">Select pipeline...</option>
                   {pipelineOptions.map(pipeline => (
                     <option key={pipeline} value={pipeline}>
-                      {pipeline.charAt(0).toUpperCase() + pipeline.slice(1)}
+                      {formatLabel(pipeline)}
                     </option>
                   ))}
                 </select>
@@ -553,7 +629,7 @@ export default function ContactManual() {
                     <option value="">Select stage...</option>
                     {pipelineStages.map(stage => (
                       <option key={stage} value={stage}>
-                        {stage.charAt(0).toUpperCase() + stage.slice(1)}
+                        {formatLabel(stage)}
                       </option>
                     ))}
                   </select>
@@ -580,10 +656,6 @@ export default function ContactManual() {
                   className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                   placeholder="Tell us what may be important to a deal, relationship context, or any other relevant information..."
                 />
-                <p className="mt-1 text-xs text-gray-500">
-                  <Info className="h-3 w-3 inline mr-1" />
-                  Include information that may be important to a deal or relationship
-                </p>
               </div>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>

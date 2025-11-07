@@ -201,6 +201,14 @@ export default function ContactsView() {
     return name.includes(search) || email.includes(search) || company.includes(search);
   });
 
+  const formatLabel = (value) => {
+    if (!value) return '';
+    return value
+      .split(/[-_]/)
+      .map((chunk) => chunk.charAt(0).toUpperCase() + chunk.slice(1))
+      .join(' ');
+  };
+
   const getPipelineBadge = (pipeline) => {
     if (!pipeline) return null;
     
@@ -211,10 +219,7 @@ export default function ContactsView() {
       institution: 'bg-orange-100 text-orange-800'
     };
     
-    // Capitalize first letter
-    const pipelineLabel = pipeline.pipeline ? 
-      pipeline.pipeline.charAt(0).toUpperCase() + pipeline.pipeline.slice(1) : 
-      '';
+    const pipelineLabel = pipeline.pipeline ? formatLabel(pipeline.pipeline) : '';
     
     return (
       <span className={`px-2 py-1 text-xs font-semibold rounded-full ${colors[pipeline.pipeline] || 'bg-gray-100 text-gray-800'}`}>
@@ -228,7 +233,7 @@ export default function ContactsView() {
     
     return (
       <span className="px-2 py-1 text-xs text-gray-600 bg-gray-100 rounded-full">
-        {pipeline.stage}
+        {formatLabel(pipeline.stage)}
       </span>
     );
   };

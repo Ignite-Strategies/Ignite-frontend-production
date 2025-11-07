@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { ArrowLeft, Mail, Phone, Building2, Briefcase, Trash2, Edit } from 'lucide-react';
+import { ArrowLeft, Mail, Phone, Building2, Briefcase, Trash2, Edit, Upload, User } from 'lucide-react';
 import api from '../../lib/api';
 
 export default function ContactDetail() {
@@ -9,6 +9,23 @@ export default function ContactDetail() {
   const [contact, setContact] = useState(null);
   const [loading, setLoading] = useState(true);
   const [deleting, setDeleting] = useState(false);
+
+  const formatLabel = (value) => {
+    if (!value) return '';
+    return value
+      .split(/[-_]/)
+      .map((chunk) => chunk.charAt(0).toUpperCase() + chunk.slice(1))
+      .join(' ');
+  };
+
+  const getInitials = () => {
+    if (!contact) return '';
+    const displayName = (contact.goesBy || `${contact.firstName || ''} ${contact.lastName || ''}`).trim();
+    if (!displayName) return '??';
+    const parts = displayName.split(' ').filter(Boolean);
+    const initials = parts.slice(0, 2).map(part => part[0]?.toUpperCase() || '').join('');
+    return initials || '??';
+  };
 
   useEffect(() => {
     loadContact();
@@ -87,6 +104,11 @@ export default function ContactDetail() {
     );
   }
 
+  const displayName = (contact.goesBy || `${contact.firstName || ''} ${contact.lastName || ''}`).trim() || 'Unnamed Contact';
+  const pipelineLabel = contact.pipeline?.pipeline ? formatLabel(contact.pipeline.pipeline) : null;
+  const stageLabel = contact.pipeline?.stage ? formatLabel(contact.pipeline.stage) : null;
+  const initials = getInitials();
+
   const getPipelineBadge = (pipeline) => {
     if (!pipeline) return null;
     
@@ -97,9 +119,8 @@ export default function ContactDetail() {
       institution: 'bg-orange-100 text-orange-800'
     };
     
-    const pipelineLabel = pipeline.pipeline ? 
-      pipeline.pipeline.charAt(0).toUpperCase() + pipeline.pipeline.slice(1) : '';
-    
+    const pipelineLabel = pipeline.pipeline ? formatLabel(pipeline.pipeline) : '';
+
     return (
       <span className={`px-3 py-1 text-sm font-semibold rounded-full ${colors[pipeline.pipeline] || 'bg-gray-100 text-gray-800'}`}>
         {pipelineLabel}
@@ -111,25 +132,68 @@ export default function ContactDetail() {
     <div className="min-h-screen bg-gray-50 py-8">
       <div className="max-w-4xl mx-auto px-4">
         {/* Header */}
-        <div className="mb-6">
-          <button
-            onClick={() => navigate('/contacts/view')}
-            className="flex items-center text-gray-600 hover:text-gray-900 mb-4"
-          >
-            <ArrowLeft className="h-5 w-5 mr-2" />
-            Back to Contacts
-          </button>
-          
-          <div className="flex items-center justify-between">
-            <div>
-              <h1 className="text-4xl font-bold text-gray-900 mb-2">
-                {contact.goesBy || `${contact.firstName || ''} ${contact.lastName || ''}`.trim() || 'Unnamed Contact'}
-              </h1>
-              {contact.title && (
-                <p className="text-xl text-gray-600">{contact.title}</p>
-              )}
+        <button
+          onClick={() => navigate('/contacts/view')}
+          className="flex items-center text-gray-600 hover:text-gray-900 mb-4"
+        >
+          <ArrowLeft className="h-5 w-5 mr-2" />
+          Back to Contacts
+        </button>
+
+        {/* Hero Card */}
+        <div className="bg-white rounded-2xl shadow-lg p-6 mb-6">
+          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-6">
+            <div className="flex items-center gap-4">
+              <div className="h-20 w-20 rounded-full bg-blue-50 text-blue-600 text-3xl font-semibold flex items-center justify-center">
+                {initials}
+              </div>
+              <div>
+                <h1 className="text-3xl font-bold text-gray-900">{displayName}</h1>
+                {contact.title && (
+                  <p className="text-lg text-gray-600">{contact.title}</p>
+                )}
+                <div className="flex flex-wrap items-center gap-3 mt-3 text-sm text-gray-500">
+                  {contact.contactCompany?.companyName && (
+                    <span className="px-2 py-1 bg-gray-100 text-gray-700 rounded-full">
+                      {contact.contactCompany.companyName}
+                    </span>
+                  )}
+                  {pipelineLabel && (
+                    <span className="px-2 py-1 bg-blue-50 text-blue-700 rounded-full">
+                      {pipelineLabel} pipeline
+                    </span>
+                  )}
+                  {stageLabel && (
+                    <span className="px-2 py-1 bg-gray-100 text-gray-700 rounded-full">
+                      Stage: {stageLabel}
+                    </span>
+                  )}
+                </div>
+                <div className="flex flex-wrap items-center gap-4 mt-3 text-sm text-gray-600">
+                  {contact.email && (
+                    <div className="flex items-center gap-2">
+                      <Mail className="h-4 w-4 text-gray-400" />
+                      <span>{contact.email}</span>
+                    </div>
+                  )}
+                  {contact.phone && (
+                    <div className="flex items-center gap-2">
+                      <Phone className="h-4 w-4 text-gray-400" />
+                      <span>{contact.phone}</span>
+                    </div>
+                  )}
+                </div>
+              </div>
             </div>
-            <div className="flex gap-3">
+            <div className="flex flex-wrap gap-3">
+              <button
+                type="button"
+                className="flex items-center gap-2 px-4 py-2 border border-dashed border-gray-300 rounded-lg text-gray-500 hover:text-gray-700 hover:border-gray-400 transition"
+                disabled
+              >
+                <Upload className="h-5 w-5" />
+                Upload Photo (coming soon)
+              </button>
               <button
                 onClick={() => navigate(`/contacts/${contactId}/edit`)}
                 className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition"
@@ -157,6 +221,15 @@ export default function ContactDetail() {
         <div className="bg-white rounded-lg shadow-lg p-6 mb-6">
           <h2 className="text-xl font-bold text-gray-900 mb-4">Contact Information</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {contact.goesBy && (
+              <div className="flex items-center gap-3">
+                <User className="h-5 w-5 text-gray-400" />
+                <div>
+                  <div className="text-sm text-gray-500">Goes By</div>
+                  <div className="text-gray-900">{contact.goesBy}</div>
+                </div>
+              </div>
+            )}
             {contact.email && (
               <div className="flex items-center gap-3">
                 <Mail className="h-5 w-5 text-gray-400" />
@@ -225,11 +298,11 @@ export default function ContactDetail() {
                 <div className="text-sm text-gray-500 mb-2">Pipeline Type</div>
                 {getPipelineBadge(contact.pipeline)}
               </div>
-              {contact.pipeline.stage && (
+              {stageLabel && (
                 <div>
                   <div className="text-sm text-gray-500 mb-2">Current Stage</div>
                   <span className="px-3 py-1 text-sm text-gray-600 bg-gray-100 rounded-full">
-                    {contact.pipeline.stage}
+                    {stageLabel}
                   </span>
                 </div>
               )}
