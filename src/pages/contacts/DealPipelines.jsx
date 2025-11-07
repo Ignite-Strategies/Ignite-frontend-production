@@ -1,6 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowRight } from 'lucide-react';
 import { useLocalStorage } from '../../hooks/useLocalStorage';
 import PageHeader from '../../components/PageHeader';
 import api from '../../lib/api';
@@ -52,23 +51,6 @@ const pipelineStyles = {
     ring: 'ring-orange-400',
     icon: '🏛️'
   }
-};
-
-const stageStyles = {
-  interest: { header: 'bg-blue-100', text: 'text-blue-700', emoji: '👀' },
-  meeting: { header: 'bg-purple-100', text: 'text-purple-700', emoji: '🤝' },
-  proposal: { header: 'bg-indigo-100', text: 'text-indigo-700', emoji: '📄' },
-  contract: { header: 'bg-orange-100', text: 'text-orange-700', emoji: '📝' },
-  'contract-signed': { header: 'bg-green-100', text: 'text-green-700', emoji: '✅' },
-  kickoff: { header: 'bg-blue-100', text: 'text-blue-700', emoji: '🚀' },
-  'work-started': { header: 'bg-amber-100', text: 'text-amber-700', emoji: '🔧' },
-  'work-delivered': { header: 'bg-indigo-100', text: 'text-indigo-700', emoji: '📦' },
-  sustainment: { header: 'bg-teal-100', text: 'text-teal-700', emoji: '🌱' },
-  renewal: { header: 'bg-green-100', text: 'text-green-700', emoji: '🔁' },
-  'terminated-contract': { header: 'bg-red-100', text: 'text-red-700', emoji: '⛔' },
-  moa: { header: 'bg-purple-100', text: 'text-purple-700', emoji: '📜' },
-  agreement: { header: 'bg-green-100', text: 'text-green-700', emoji: '✅' },
-  unassigned: { header: 'bg-gray-100', text: 'text-gray-600', emoji: '📌' }
 };
 
 const formatLabel = (value) =>
@@ -142,28 +124,19 @@ export default function DealPipelines() {
     [contacts, selectedPipeline]
   );
 
-  const unassignedContacts = useMemo(
-    () =>
-      pipelineContacts.filter((contact) => {
-        const stageSlug = slugify(contact.pipeline?.stage);
-        return !activeStages.includes(stageSlug);
-      }),
-    [pipelineContacts, activeStages]
-  );
+  const unassignedContacts = useMemo(() => {
+    const set = new Set(activeStages);
+    return pipelineContacts.filter((contact) => !set.has(slugify(contact.pipeline?.stage)));
+  }, [pipelineContacts, activeStages]);
 
-  const getStageContacts = (stageId) => {
-    if (stageId === 'unassigned') {
-      return unassignedContacts;
-    }
-    return pipelineContacts.filter(
-      (contact) => slugify(contact.pipeline?.stage) === stageId
-    );
-  };
+  const getStageContacts = (stageId) =>
+    stageId
+      ? pipelineContacts.filter(
+          (contact) => slugify(contact.pipeline?.stage) === stageId
+        )
+      : unassignedContacts;
 
-  const stageIds = [
-    ...activeStages,
-    ...(unassignedContacts.length > 0 ? ['unassigned'] : [])
-  ];
+  const stageIds = activeStages;
 
   const getStageTotal = (stageId) =>
     getStageContacts(stageId).reduce(
@@ -184,18 +157,6 @@ export default function DealPipelines() {
       (contact) => slugify(contact.pipeline?.pipeline) === slugify(pipelineId)
     ).length;
 
-  const getLogicalNextStages = (stageId) => {
-    if (!activeStages.length) return [];
-    if (stageId === 'unassigned') {
-      return [activeStages[0]];
-    }
-    const currentIndex = activeStages.indexOf(stageId);
-    if (currentIndex === -1 || currentIndex === activeStages.length - 1) {
-      return [];
-    }
-    return activeStages.slice(currentIndex + 1);
-  };
-
   const handleStageChange = (contactId, nextStageId) => {
     setContacts((prevContacts) =>
       prevContacts.map((contact) => {
@@ -203,7 +164,7 @@ export default function DealPipelines() {
         const updatedPipeline = {
           ...(contact.pipeline || {}),
           pipeline: selectedPipeline,
-          stage: nextStageId
+          stage: nextStageId || null
         };
         return { ...contact, pipeline: updatedPipeline };
       })
@@ -300,89 +261,133 @@ export default function DealPipelines() {
           </div>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4 mb-8">
           {stageIds.map((stageId) => {
-            const contactsInStage = getStageContacts(stageId);
-            const styles = stageStyles[stageId] || stageStyles.unassigned;
-            const nextStages = getLogicalNextStages(stageId);
-            const nextStageLabel = nextStages.length
-              ? formatLabel(nextStages[0])
-              : null;
-
+            const count = getStageContacts(stageId).length;
             return (
-              <div key={stageId} className="bg-white rounded-lg shadow-sm border border-gray-200">
-                <div className={`p-4 border-b ${styles.header} rounded-t-lg`}>
-                  <div className="flex items-center gap-2 mb-2">
-                    <span className="text-2xl">{styles.emoji}</span>
-                    <h3 className={`font-semibold ${styles.text}`}>
-                      {stageId === 'unassigned' ? 'Unassigned' : formatLabel(stageId)}
-                    </h3>
-                  </div>
-                  <p className="text-sm text-gray-700 mb-1">
-                    {contactsInStage.length}{' '}
-                    {contactsInStage.length === 1 ? 'contact' : 'contacts'}
-                  </p>
-                  <p className="text-xs font-medium text-gray-800">
-                    {formatCurrency(getStageTotal(stageId))}
-                  </p>
+              <div
+                key={stageId}
+                className="bg-white border border-gray-200 rounded-lg p-4 shadow-sm"
+              >
+                <div className="text-xs font-semibold text-gray-500 uppercase tracking-wide">
+                  {formatLabel(stageId)}
                 </div>
-
-                <div className="p-4 min-h-[300px] max-h-[500px] overflow-y-auto">
-                  {contactsInStage.length > 0 ? (
-                    <div className="space-y-3">
-                      {contactsInStage.map((contact) => (
-                        <div
-                          key={contact.id}
-                          className="bg-gray-50 p-3 rounded border hover:shadow-sm transition-shadow"
-                        >
-                          <div className="font-medium text-gray-900 mb-1">
-                            {getContactDisplayName(contact)}
-                          </div>
-                          <div className="text-sm text-gray-600">
-                            {contact.contactCompany?.companyName || 'No company'}
-                          </div>
-                          {contact.title && (
-                            <div className="text-xs text-gray-500 mt-1">
-                              {contact.title}
-                            </div>
-                          )}
-                          {(contact.pipeline?.value || contact.dealValue) && (
-                            <div className="text-sm font-semibold text-gray-900 mt-2">
-                              {formatCurrency(contact.pipeline?.value || contact.dealValue)}
-                            </div>
-                          )}
-
-                          {nextStages.length > 0 && (
-                            <div className="mt-3">
-                              <button
-                                onClick={() => handleStageChange(contact.id, nextStages[0])}
-                                className={`text-xs px-3 py-1 rounded font-medium hover:opacity-80 transition-colors flex items-center gap-1 w-full justify-center ${styles.header} ${styles.text}`}
-                              >
-                                <ArrowRight className="h-3 w-3" />
-                                Move to {nextStageLabel || 'next stage'}
-                              </button>
-                            </div>
-                          )}
-                        </div>
-                      ))}
-                    </div>
-                  ) : (
-                    <div className="text-center py-8 text-gray-400">
-                      <div className="text-4xl mb-2">{styles.emoji}</div>
-                      <p className="text-sm">
-                        {stageId === 'unassigned'
-                          ? 'No contacts without a stage'
-                          : 'No contacts in this stage'}
-                      </p>
-                    </div>
-                  )}
+                <div className="mt-2 flex items-baseline gap-2">
+                  <span className="text-2xl font-bold text-gray-900">{count}</span>
+                  <span className="text-xs text-gray-500">
+                    {count === 1 ? 'contact' : 'contacts'}
+                  </span>
+                </div>
+                <div className="text-xs text-gray-500 mt-2">
+                  Value {formatCurrency(getStageTotal(stageId))}
                 </div>
               </div>
             );
           })}
+          <div className="bg-white border border-gray-200 rounded-lg p-4 shadow-sm">
+            <div className="text-xs font-semibold text-gray-500 uppercase tracking-wide">
+              Unassigned
+            </div>
+            <div className="mt-2 flex items-baseline gap-2">
+              <span className="text-2xl font-bold text-gray-900">
+                {unassignedContacts.length}
+              </span>
+              <span className="text-xs text-gray-500">
+                {unassignedContacts.length === 1 ? 'contact' : 'contacts'}
+              </span>
+            </div>
+            <div className="text-xs text-gray-500 mt-2">
+              Value {formatCurrency(getStageTotal(''))}
+            </div>
+          </div>
+        </div>
+
+        <div className="bg-white border border-gray-200 rounded-xl shadow-sm">
+          <div className="overflow-x-auto">
+            <table className="min-w-full divide-y divide-gray-200">
+              <thead className="bg-gray-50">
+                <tr>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Contact
+                  </th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Company
+                  </th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Title
+                  </th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Stage
+                  </th>
+                  <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Value
+                  </th>
+                  <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Actions
+                  </th>
+                </tr>
+              </thead>
+              <tbody className="bg-white divide-y divide-gray-200">
+                {pipelineContacts.length === 0 ? (
+                  <tr>
+                    <td
+                      colSpan={6}
+                      className="px-4 py-8 text-center text-gray-500 text-sm"
+                    >
+                      No contacts in this pipeline yet.
+                    </td>
+                  </tr>
+                ) : (
+                  pipelineContacts.map((contact) => {
+                    const stageValue = slugify(contact.pipeline?.stage);
+                    const selectValue = activeStages.includes(stageValue) ? stageValue : '';
+                    return (
+                      <tr key={contact.id}>
+                        <td className="px-4 py-3 text-sm text-gray-900">
+                          {getContactDisplayName(contact)}
+                        </td>
+                        <td className="px-4 py-3 text-sm text-gray-600">
+                          {contact.contactCompany?.companyName || '—'}
+                        </td>
+                        <td className="px-4 py-3 text-sm text-gray-500">
+                          {contact.title || '—'}
+                        </td>
+                        <td className="px-4 py-3 text-sm text-gray-600">
+                          <select
+                            value={selectValue}
+                            onChange={(event) =>
+                              handleStageChange(contact.id, event.target.value || '')
+                            }
+                            className="border border-gray-300 rounded-lg px-2 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                          >
+                            <option value="">Unassigned</option>
+                            {activeStages.map((stageId) => (
+                              <option key={stageId} value={stageId}>
+                                {formatLabel(stageId)}
+                              </option>
+                            ))}
+                          </select>
+                        </td>
+                        <td className="px-4 py-3 text-sm text-gray-600 text-right">
+                          {formatCurrency(contact.pipeline?.value || contact.dealValue || 0)}
+                        </td>
+                        <td className="px-4 py-3 text-sm text-right">
+                          <button
+                            onClick={() => navigate(`/contacts/${contact.id}`)}
+                            className="text-blue-600 hover:text-blue-800 font-medium text-sm"
+                          >
+                            View Contact
+                          </button>
+                        </td>
+                      </tr>
+                    );
+                  })
+                )}
+              </tbody>
+            </table>
+          </div>
         </div>
       </div>
     </div>
   );
 }
-
