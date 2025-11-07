@@ -197,6 +197,7 @@ function App() {
           
           {/* Main Dashboard */}
           <Route path="/growth-dashboard" element={<GrowthDashboard />} />
+          <Route path="/growthdashboard" element={<GrowthDashboard />} />
           <Route path="/companydashboard" element={<CompanyDashboard />} />
           <Route path="/proposals" element={<ProposalsList />} />
           <Route path="/proposals/service-library" element={<ServiceLibrary />} />
