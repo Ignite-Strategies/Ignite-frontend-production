@@ -211,9 +211,14 @@ export default function ContactsView() {
       institution: 'bg-orange-100 text-orange-800'
     };
     
+    // Capitalize first letter
+    const pipelineLabel = pipeline.pipeline ? 
+      pipeline.pipeline.charAt(0).toUpperCase() + pipeline.pipeline.slice(1) : 
+      '';
+    
     return (
       <span className={`px-2 py-1 text-xs font-semibold rounded-full ${colors[pipeline.pipeline] || 'bg-gray-100 text-gray-800'}`}>
-        {pipeline.pipeline}
+        {pipelineLabel}
       </span>
     );
   };
@@ -369,8 +374,12 @@ export default function ContactsView() {
                 </thead>
                 <tbody className="divide-y divide-gray-200">
                   {filteredContacts.map((contact) => (
-                    <tr key={contact.id} className="hover:bg-gray-50">
-                      <td className="px-6 py-4 whitespace-nowrap">
+                    <tr 
+                      key={contact.id} 
+                      className="hover:bg-gray-50 cursor-pointer"
+                      onClick={() => navigate(`/contacts/${contact.id}`)}
+                    >
+                      <td className="px-6 py-4 whitespace-nowrap" onClick={(e) => e.stopPropagation()}>
                         <input
                           type="checkbox"
                           checked={selectedContacts.has(contact.id)}
@@ -380,7 +389,9 @@ export default function ContactsView() {
                         />
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                        {contact.goesBy || `${contact.firstName || ''} ${contact.lastName || ''}`.trim() || 'Unnamed Contact'}
+                        <span className="hover:text-blue-600 hover:underline">
+                          {contact.goesBy || `${contact.firstName || ''} ${contact.lastName || ''}`.trim() || 'Unnamed Contact'}
+                        </span>
                         {contact.title && (
                           <div className="text-xs text-gray-400 mt-1">{contact.title}</div>
                         )}
