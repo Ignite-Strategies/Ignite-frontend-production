@@ -1,256 +1,365 @@
-import { useState, useMemo } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { ArrowRight } from 'lucide-react';
 import { useLocalStorage } from '../../hooks/useLocalStorage';
-import { UserCircle, Building2, ArrowRight } from 'lucide-react';
 import PageHeader from '../../components/PageHeader';
+import api from '../../lib/api';
 
-// Pipeline stages for legal services
-const stages = [
-  { id: 'interested', name: 'Interested', color: 'bg-blue-100', borderColor: 'border-blue-300', textColor: 'text-blue-700', emoji: '👀' },
-  { id: 'had-meeting', name: 'Had Meeting', color: 'bg-purple-100', borderColor: 'border-purple-300', textColor: 'text-purple-700', emoji: '🤝' },
-  { id: 'contract-negotiations', name: 'Contract Negotiations', color: 'bg-orange-100', borderColor: 'border-orange-300', textColor: 'text-orange-700', emoji: '📝' },
-  { id: 'contract-signed', name: 'Contract Signed', color: 'bg-green-100', borderColor: 'border-green-300', textColor: 'text-green-700', emoji: '✅' }
-];
+const fallbackPipelineConfig = {
+  prospect: ['interest', 'meeting', 'proposal', 'contract', 'contract-signed'],
+  client: ['kickoff', 'work-started', 'work-delivered', 'sustainment', 'renewal', 'terminated-contract'],
+  collaborator: ['interest', 'meeting', 'moa', 'agreement'],
+  institution: ['interest', 'meeting', 'moa', 'agreement']
+};
 
-// Persona types (matching the Engage page)
-const personaTypes = [
-  { 
-    id: 'capital-partner', 
-    name: 'Capital Partner', 
-    color: 'bg-red-100', 
-    textColor: 'text-red-700',
-    borderColor: 'border-red-300',
-    description: 'Investment firms, PE funds, VC firms'
+const pipelineDescriptions = {
+  prospect: 'Move prospects from first touch to signed contract',
+  client: 'Track delivery, sustainment, and renewal motions',
+  collaborator: 'Manage strategic partners and MOAs',
+  institution: 'Guide institutional relationships through formal agreements'
+};
+
+const pipelineStyles = {
+  prospect: {
+    background: 'bg-blue-50',
+    border: 'border-blue-300',
+    text: 'text-blue-700',
+    chip: 'bg-blue-100 text-blue-700',
+    ring: 'ring-blue-400',
+    icon: '🧲'
   },
-  { 
-    id: 'portfolio-manager', 
-    name: 'Portfolio Manager', 
-    color: 'bg-orange-100', 
-    textColor: 'text-orange-700',
-    borderColor: 'border-orange-300',
-    description: 'Portfolio company managers and executives'
+  client: {
+    background: 'bg-green-50',
+    border: 'border-green-300',
+    text: 'text-green-700',
+    chip: 'bg-green-100 text-green-700',
+    ring: 'ring-green-400',
+    icon: '🤝'
   },
-  { 
-    id: 'investment-director', 
-    name: 'Investment Director', 
-    color: 'bg-purple-100', 
-    textColor: 'text-purple-700',
-    borderColor: 'border-purple-300',
-    description: 'Strategic investment and business development directors'
+  collaborator: {
+    background: 'bg-purple-50',
+    border: 'border-purple-300',
+    text: 'text-purple-700',
+    chip: 'bg-purple-100 text-purple-700',
+    ring: 'ring-purple-400',
+    icon: '🤝'
+  },
+  institution: {
+    background: 'bg-orange-50',
+    border: 'border-orange-300',
+    text: 'text-orange-700',
+    chip: 'bg-orange-100 text-orange-700',
+    ring: 'ring-orange-400',
+    icon: '🏛️'
   }
-];
+};
+
+const stageStyles = {
+  interest: { header: 'bg-blue-100', text: 'text-blue-700', emoji: '👀' },
+  meeting: { header: 'bg-purple-100', text: 'text-purple-700', emoji: '🤝' },
+  proposal: { header: 'bg-indigo-100', text: 'text-indigo-700', emoji: '📄' },
+  contract: { header: 'bg-orange-100', text: 'text-orange-700', emoji: '📝' },
+  'contract-signed': { header: 'bg-green-100', text: 'text-green-700', emoji: '✅' },
+  kickoff: { header: 'bg-blue-100', text: 'text-blue-700', emoji: '🚀' },
+  'work-started': { header: 'bg-amber-100', text: 'text-amber-700', emoji: '🔧' },
+  'work-delivered': { header: 'bg-indigo-100', text: 'text-indigo-700', emoji: '📦' },
+  sustainment: { header: 'bg-teal-100', text: 'text-teal-700', emoji: '🌱' },
+  renewal: { header: 'bg-green-100', text: 'text-green-700', emoji: '🔁' },
+  'terminated-contract': { header: 'bg-red-100', text: 'text-red-700', emoji: '⛔' },
+  moa: { header: 'bg-purple-100', text: 'text-purple-700', emoji: '📜' },
+  agreement: { header: 'bg-green-100', text: 'text-green-700', emoji: '✅' },
+  unassigned: { header: 'bg-gray-100', text: 'text-gray-600', emoji: '📌' }
+};
+
+const formatLabel = (value) =>
+  value
+    ? value
+        .split(/[-_]/)
+        .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+        .join(' ')
+    : '';
+
+const slugify = (value) =>
+  (value || '')
+    .toString()
+    .trim()
+    .toLowerCase()
+    .replace(/\s+/g, '-');
+
+const getContactDisplayName = (contact) =>
+  contact.goesBy ||
+  [contact.firstName, contact.lastName].filter(Boolean).join(' ').trim() ||
+  'Unnamed Contact';
 
 export default function DealPipelines() {
   const navigate = useNavigate();
   const [contacts, setContacts] = useLocalStorage('contacts', []);
-  const [selectedPersona, setSelectedPersona] = useState('capital-partner');
-  const [selectedStage, setSelectedStage] = useState(null);
+  const [pipelineMap, setPipelineMap] = useState(fallbackPipelineConfig);
+  const [loadingConfig, setLoadingConfig] = useState(true);
+  const [selectedPipeline, setSelectedPipeline] = useState('');
 
-  // Mock persona assignments for contacts (in real app, would come from persona data)
-  const getPersonaForContact = (contact) => {
-    // Mock logic: assign based on title or company type
-    if (contact.title?.toLowerCase().includes('partner') || contact.title?.toLowerCase().includes('capital')) {
-      return 'capital-partner';
+  useEffect(() => {
+    let isMounted = true;
+
+    const loadPipelineConfig = async () => {
+      try {
+        const response = await api.get('/api/pipelines/config');
+        if (isMounted && response.data?.pipelines) {
+          setPipelineMap(response.data.pipelines);
+        }
+      } catch (error) {
+        console.warn('⚠️ Falling back to default pipeline config:', error?.message);
+        if (isMounted) {
+          setPipelineMap(fallbackPipelineConfig);
+        }
+      } finally {
+        if (isMounted) {
+          setLoadingConfig(false);
+        }
+      }
+    };
+
+    loadPipelineConfig();
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
+  const pipelineKeys = useMemo(() => Object.keys(pipelineMap), [pipelineMap]);
+
+  useEffect(() => {
+    if (!selectedPipeline && pipelineKeys.length > 0) {
+      setSelectedPipeline(pipelineKeys[0]);
     }
-    if (contact.title?.toLowerCase().includes('portfolio') || contact.title?.toLowerCase().includes('manager')) {
-      return 'portfolio-manager';
+  }, [pipelineKeys, selectedPipeline]);
+
+  const activeStages = selectedPipeline ? pipelineMap[selectedPipeline] || [] : [];
+  const pipelineContacts = useMemo(
+    () =>
+      contacts.filter(
+        (contact) => slugify(contact.pipeline?.pipeline) === slugify(selectedPipeline)
+      ),
+    [contacts, selectedPipeline]
+  );
+
+  const unassignedContacts = useMemo(
+    () =>
+      pipelineContacts.filter((contact) => {
+        const stageSlug = slugify(contact.pipeline?.stage);
+        return !activeStages.includes(stageSlug);
+      }),
+    [pipelineContacts, activeStages]
+  );
+
+  const getStageContacts = (stageId) => {
+    if (stageId === 'unassigned') {
+      return unassignedContacts;
     }
-    if (contact.title?.toLowerCase().includes('director') || contact.title?.toLowerCase().includes('investment')) {
-      return 'investment-director';
-    }
-    // Default fallback
-    return 'capital-partner';
+    return pipelineContacts.filter(
+      (contact) => slugify(contact.pipeline?.stage) === stageId
+    );
   };
 
-  // Filter contacts by selected persona
-  const personaContacts = useMemo(() => {
-    return contacts.filter(c => getPersonaForContact(c) === selectedPersona);
-  }, [contacts, selectedPersona]);
+  const stageIds = [
+    ...activeStages,
+    ...(unassignedContacts.length > 0 ? ['unassigned'] : [])
+  ];
 
-  // Get contact count for a specific persona
-  const getPersonaContactCount = (personaId) => {
-    return contacts.filter(c => getPersonaForContact(c) === personaId).length;
-  };
+  const getStageTotal = (stageId) =>
+    getStageContacts(stageId).reduce(
+      (sum, contact) => sum + (contact.pipeline?.value || contact.dealValue || 0),
+      0
+    );
 
-  // Group persona contacts by stage
-  const contactsByStage = useMemo(() => {
-    const grouped = {};
-    stages.forEach(stage => {
-      grouped[stage.id] = personaContacts.filter(c => {
-        const contactStage = (c.stage || 'Interested').toLowerCase()
-          .replace(/\s+/g, '-')
-          .replace('prospect', 'interested')
-          .replace('prospecting', 'interested')
-          .replace('warm', 'interested')
-          .replace('meeting', 'had-meeting')
-          .replace('had-meeting', 'had-meeting')
-          .replace('negotiation', 'contract-negotiations')
-          .replace('negotiations', 'contract-negotiations')
-          .replace('proposal', 'contract-negotiations')
-          .replace('client', 'contract-signed')
-          .replace('closed-won', 'contract-signed')
-          .replace('signed', 'contract-signed');
-        return contactStage === stage.id;
-      });
-    });
-    return grouped;
-  }, [personaContacts]);
-
-  const formatCurrency = (amount) => {
-    if (!amount || amount === 0) return '$0';
-    return new Intl.NumberFormat('en-US', {
+  const formatCurrency = (amount) =>
+    new Intl.NumberFormat('en-US', {
       style: 'currency',
       currency: 'USD',
       minimumFractionDigits: 0,
-      maximumFractionDigits: 0,
-    }).format(amount);
+      maximumFractionDigits: 0
+    }).format(amount || 0);
+
+  const getPipelineContactCount = (pipelineId) =>
+    contacts.filter(
+      (contact) => slugify(contact.pipeline?.pipeline) === slugify(pipelineId)
+    ).length;
+
+  const getLogicalNextStages = (stageId) => {
+    if (!activeStages.length) return [];
+    if (stageId === 'unassigned') {
+      return [activeStages[0]];
+    }
+    const currentIndex = activeStages.indexOf(stageId);
+    if (currentIndex === -1 || currentIndex === activeStages.length - 1) {
+      return [];
+    }
+    return activeStages.slice(currentIndex + 1);
   };
 
-  const getStageCount = (stageId) => {
-    return contactsByStage[stageId]?.length || 0;
+  const handleStageChange = (contactId, nextStageId) => {
+    setContacts((prevContacts) =>
+      prevContacts.map((contact) => {
+        if (contact.id !== contactId) return contact;
+        const updatedPipeline = {
+          ...(contact.pipeline || {}),
+          pipeline: selectedPipeline,
+          stage: nextStageId
+        };
+        return { ...contact, pipeline: updatedPipeline };
+      })
+    );
   };
 
-  const getStageTotal = (stageId) => {
-    const deals = contactsByStage[stageId] || [];
-    return deals.reduce((sum, deal) => sum + (deal.value || deal.dealValue || 0), 0);
-  };
+  if (loadingConfig && !selectedPipeline) {
+    return (
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <PageHeader title="Deal Pipelines" subtitle="Loading pipeline configuration..." />
+      </div>
+    );
+  }
 
-  const getLogicalNextStages = (currentStage) => {
-    const currentIndex = stages.findIndex(stage => stage.id === currentStage);
-    if (currentIndex === -1 || currentIndex === stages.length - 1) return [];
-    return stages.slice(currentIndex + 1);
-  };
-
-  const handleStageChange = (contactId, newStage) => {
-    const updated = contacts.map(c => {
-      if (c.id === contactId) {
-        const stageName = newStage.split('-').map(word => 
-          word.charAt(0).toUpperCase() + word.slice(1)
-        ).join(' ');
-        return { ...c, stage: stageName };
-      }
-      return c;
-    });
-    setContacts(updated);
-  };
-
-  const currentPersona = personaTypes.find(p => p.id === selectedPersona);
+  if (pipelineKeys.length === 0) {
+    return (
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <PageHeader title="Deal Pipelines" subtitle="No pipeline configuration available." />
+      </div>
+    );
+  }
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
       <PageHeader
         title="Deal Pipelines"
-        subtitle="Track deals by persona type through the engagement journey"
+        subtitle="Track deals by pipeline type and stage."
         backTo="/contacts"
-        backLabel="← Back to Contacts"
+        backLabel="Back to People Hub"
+        breadcrumbs={[
+          { label: 'Growth Dashboard', to: '/growth-dashboard' },
+          { label: 'People Hub', to: '/contacts' },
+          { label: 'Deal Pipelines' }
+        ]}
       />
 
-      {/* Persona Selection */}
       <div className="bg-white rounded-xl shadow-lg p-6 mb-8">
-        <h2 className="text-lg font-semibold text-gray-900 mb-4">Select Persona Pipeline</h2>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          {personaTypes.map((persona) => (
-            <button
-              key={persona.id}
-              onClick={() => {
-                setSelectedPersona(persona.id);
-                setSelectedStage(null);
-              }}
-              className={`p-4 rounded-lg border-2 transition-all text-left ${
-                selectedPersona === persona.id
-                  ? `${persona.borderColor} ${persona.color} ring-2 ring-current`
-                  : 'border-gray-200 bg-gray-50 hover:border-gray-300'
-              }`}
-            >
-              <div className="flex items-center gap-3 mb-2">
-                <UserCircle className={`h-6 w-6 ${selectedPersona === persona.id ? persona.textColor : 'text-gray-600'}`} />
-                <h3 className={`font-semibold ${selectedPersona === persona.id ? persona.textColor : 'text-gray-900'}`}>
-                  {persona.name}
-                </h3>
-              </div>
-              <p className="text-sm text-gray-600">{persona.description}</p>
-              <div className="mt-2 text-sm font-medium text-gray-700">
-                {getPersonaContactCount(persona.id)} deals
-              </div>
-            </button>
-          ))}
+        <h2 className="text-lg font-semibold text-gray-900 mb-4">Select Pipeline</h2>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+          {pipelineKeys.map((pipelineId) => {
+            const styles = pipelineStyles[pipelineId] || pipelineStyles.prospect;
+            const isActive = pipelineId === selectedPipeline;
+            return (
+              <button
+                key={pipelineId}
+                onClick={() => setSelectedPipeline(pipelineId)}
+                className={`p-4 rounded-lg border-2 transition-all text-left ${
+                  isActive
+                    ? `${styles.border} ${styles.background} ${styles.ring} ring-2 ring-offset-2`
+                    : 'border-gray-200 bg-gray-50 hover:border-gray-300'
+                }`}
+              >
+                <div className="flex items-center gap-3 mb-2">
+                  <span className="text-2xl">{styles.icon}</span>
+                  <h3
+                    className={`font-semibold ${
+                      isActive ? styles.text : 'text-gray-900'
+                    }`}
+                  >
+                    {formatLabel(pipelineId)}
+                  </h3>
+                </div>
+                <p className="text-sm text-gray-600">
+                  {pipelineDescriptions[pipelineId] ||
+                    'Track contacts through this engagement flow.'}
+                </p>
+                <div className={`mt-3 inline-flex px-2 py-1 rounded-full text-xs ${styles.chip}`}>
+                  {getPipelineContactCount(pipelineId)}{' '}
+                  {getPipelineContactCount(pipelineId) === 1 ? 'contact' : 'contacts'}
+                </div>
+              </button>
+            );
+          })}
         </div>
       </div>
 
-      {/* Pipeline Stages - HubSpot Style */}
       <div className="mb-8">
         <div className="flex items-center justify-between mb-4">
           <div>
             <h2 className="text-2xl font-bold text-gray-900">
-              {currentPersona?.name} Pipeline
+              {formatLabel(selectedPipeline)} Pipeline
             </h2>
-            <p className="text-gray-600">Move contacts through the engagement stages</p>
+            <p className="text-gray-600">
+              Move contacts through the engagement stages defined for this pipeline.
+            </p>
           </div>
           <div className="text-sm text-gray-600">
-            Total Value: <span className="font-bold text-gray-900">
+            Total Value:{' '}
+            <span className="font-bold text-gray-900">
               {formatCurrency(
-                stages.reduce((sum, stage) => sum + getStageTotal(stage.id), 0)
+                activeStages.reduce((sum, stageId) => sum + getStageTotal(stageId), 0)
               )}
             </span>
           </div>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-          {stages.map((stage) => {
-            const stageContacts = contactsByStage[stage.id] || [];
+          {stageIds.map((stageId) => {
+            const contactsInStage = getStageContacts(stageId);
+            const styles = stageStyles[stageId] || stageStyles.unassigned;
+            const nextStages = getLogicalNextStages(stageId);
+            const nextStageLabel = nextStages.length
+              ? formatLabel(nextStages[0])
+              : null;
+
             return (
-              <div key={stage.id} className="bg-white rounded-lg shadow-sm border border-gray-200">
-                {/* Stage Header */}
-                <div className={`p-4 border-b ${stage.color} rounded-t-lg`}>
+              <div key={stageId} className="bg-white rounded-lg shadow-sm border border-gray-200">
+                <div className={`p-4 border-b ${styles.header} rounded-t-lg`}>
                   <div className="flex items-center gap-2 mb-2">
-                    <span className="text-2xl">{stage.emoji}</span>
-                    <h3 className={`font-semibold ${stage.textColor}`}>
-                      {stage.name}
+                    <span className="text-2xl">{styles.emoji}</span>
+                    <h3 className={`font-semibold ${styles.text}`}>
+                      {stageId === 'unassigned' ? 'Unassigned' : formatLabel(stageId)}
                     </h3>
                   </div>
                   <p className="text-sm text-gray-700 mb-1">
-                    {stageContacts.length} {stageContacts.length === 1 ? 'deal' : 'deals'}
+                    {contactsInStage.length}{' '}
+                    {contactsInStage.length === 1 ? 'contact' : 'contacts'}
                   </p>
                   <p className="text-xs font-medium text-gray-800">
-                    {formatCurrency(getStageTotal(stage.id))}
+                    {formatCurrency(getStageTotal(stageId))}
                   </p>
                 </div>
 
-                {/* Contacts */}
                 <div className="p-4 min-h-[300px] max-h-[500px] overflow-y-auto">
-                  {stageContacts.length > 0 ? (
+                  {contactsInStage.length > 0 ? (
                     <div className="space-y-3">
-                      {stageContacts.map((contact) => (
-                        <div key={contact.id} className="bg-gray-50 p-3 rounded border hover:shadow-sm transition-shadow">
+                      {contactsInStage.map((contact) => (
+                        <div
+                          key={contact.id}
+                          className="bg-gray-50 p-3 rounded border hover:shadow-sm transition-shadow"
+                        >
                           <div className="font-medium text-gray-900 mb-1">
-                            {contact.name || contact.contact || 'Unknown'}
+                            {getContactDisplayName(contact)}
                           </div>
                           <div className="text-sm text-gray-600">
-                            {contact.company || 'No company'}
+                            {contact.contactCompany?.companyName || 'No company'}
                           </div>
                           {contact.title && (
                             <div className="text-xs text-gray-500 mt-1">
                               {contact.title}
                             </div>
                           )}
-                          {(contact.value || contact.dealValue) && (
+                          {(contact.pipeline?.value || contact.dealValue) && (
                             <div className="text-sm font-semibold text-gray-900 mt-2">
-                              {formatCurrency(contact.value || contact.dealValue)}
+                              {formatCurrency(contact.pipeline?.value || contact.dealValue)}
                             </div>
                           )}
-                          
-                          {/* Forward Arrow - Move to Next Stage */}
-                          {getLogicalNextStages(stage.id).length > 0 && (
-                            <div className="mt-2">
+
+                          {nextStages.length > 0 && (
+                            <div className="mt-3">
                               <button
-                                onClick={() => {
-                                  const nextStage = getLogicalNextStages(stage.id)[0];
-                                  handleStageChange(contact.id, nextStage.id);
-                                }}
-                                className={`text-xs ${stage.color} ${stage.textColor} px-3 py-1 rounded font-medium hover:opacity-80 transition-colors flex items-center gap-1 w-full justify-center`}
+                                onClick={() => handleStageChange(contact.id, nextStages[0])}
+                                className={`text-xs px-3 py-1 rounded font-medium hover:opacity-80 transition-colors flex items-center gap-1 w-full justify-center ${styles.header} ${styles.text}`}
                               >
                                 <ArrowRight className="h-3 w-3" />
-                                Next Stage
+                                Move to {nextStageLabel || 'next stage'}
                               </button>
                             </div>
                           )}
@@ -259,8 +368,12 @@ export default function DealPipelines() {
                     </div>
                   ) : (
                     <div className="text-center py-8 text-gray-400">
-                      <div className="text-4xl mb-2">{stage.emoji}</div>
-                      <p className="text-sm">No deals in this stage</p>
+                      <div className="text-4xl mb-2">{styles.emoji}</div>
+                      <p className="text-sm">
+                        {stageId === 'unassigned'
+                          ? 'No contacts without a stage'
+                          : 'No contacts in this stage'}
+                      </p>
                     </div>
                   )}
                 </div>

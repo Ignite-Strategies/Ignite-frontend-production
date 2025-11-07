@@ -53,7 +53,7 @@ The core mission: **Attract → Engage → Nurture**
 ### Core Architecture Pattern
 **Contact + Company First Architecture** - Designed to drive business growth through systematic relationship management.
 
-See `IGNITE_ARCHITECTURE.md` for complete architecture documentation including:
+This architecture emphasizes:
 - Multi-tenancy via `CompanyHQId`
 - Contact as universal personhood
 - Pipeline/stage tracking
@@ -65,6 +65,307 @@ See `IGNITE_ARCHITECTURE.md` for complete architecture documentation including:
 2. **Universal Personhood**: Contacts represent people across their entire journey
 3. **Pipeline Tracking**: Intentional pipeline/stage state management
 4. **Company Hierarchy**: CompanyHQ (tenant) vs Company (prospect/client)
+
+---
+
+## Backend Architecture
+
+### Core Principles
+
+#### 1. Multi-Tenancy Architecture
+
+- `CompanyHQId` is the root container and tenant boundary.
+- All data maps to `CompanyHQId`, ensuring strict data isolation.
+- Contacts, prospects, clients, and campaigns are all scoped under a single `CompanyHQId`.
+- Cross-tenant access is prevented by design; queries must always filter by `CompanyHQId`.
+
+#### 2. Ownership & Management Hierarchy
+
+- `ownerId` represents the super admin with full access and the ability to manage company settings. Owners are *not* contacts.
+- `managerId` is delegated by the owner to manage CRM data but cannot alter company settings. This relationship is handled in route logic rather than the schema.
+
+#### 3. Contact Storage & Hydration
+
+- Contacts relate directly to the tenant via `companyId` (which equals the `CompanyHQId`).
+- Owner data never surfaces in contact queries, so hydration by `CompanyHQId` is straightforward.
+- Contacts are designed for universal personhood—one record follows a person throughout their lifecycle.
+
+#### 4. Pipeline Tracking
+
+- The dedicated `Pipeline` model tracks funnel state with `pipeline` and `stage` string values.
+- Each contact can have one pipeline record (`contactId` is unique), enabling simple conversion flows without duplicating contact records.
+
+#### 5. Company Model Positioning
+
+- Prospect/client companies live under `CompanyHQId` via the `Company` model.
+- A company record is typically created in tandem with a contact who works there.
+- Documents such as proposals, contracts, and invoices attach to the `Company` model, not the contact.
+
+#### 6. CompanyHQ-Scoped Models
+
+- Certain models, such as `Persona`, relate solely to `CompanyHQ` rather than prospect/client companies.
+- These models are created as needed and provide platform-level scaffolding (e.g., persona matching).
+
+---
+
+### Schema Structure
+
+#### Owner Model (User/Auth - Firebase)
+
+```prisma
+model Owner {
+  id          String   @id @default(cuid())
+  firebaseId  String   @unique
+  name        String?
+  email       String?
+  photoURL    String?
+
+  ownedCompanies  CompanyHQ[] @relation("OwnerOf")
+  managedCompanies CompanyHQ[] @relation("ManagerOf")
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+```
+
+- `firebaseId` is the universal identifier from Firebase Auth.
+- Name, email, and photoURL are stored for quick access without re-querying Firebase.
+
+#### CompanyHQ Model (Root Container - Tenant)
+
+```prisma
+model CompanyHQ {
+  id          String   @id @default(cuid())
+
+  ownerId     String
+  owner       Owner    @relation("OwnerOf", fields: [ownerId], references: [id])
+  managerId   String?
+  manager     Owner?   @relation("ManagerOf", fields: [managerId], references: [id])
+
+  companyName      String
+  companyStreet    String?
+  companyCity      String?
+  companyState     String?
+  companyWebsite   String?
+  whatYouDo        String?
+  companyIndustry  String?
+  companyAnnualRev String?
+  yearsInBusiness  String?
+  teamSize         String?
+
+  contacts     Contact[]
+  contactLists ContactList[]
+  companies    Company[]
+}
+```
+
+- All CRM objects—including contacts, companies, and contact lists—are nested here.
+- `CompanyHQ` is the tenant boundary enforcing multi-tenancy.
+
+#### Company Model (Prospect/Client Companies)
+
+```prisma
+model Company {
+  id          String   @id @default(cuid())
+  companyHQId String
+  companyHQ   CompanyHQ @relation(fields: [companyHQId], references: [id], onDelete: Cascade)
+
+  companyName      String
+  address          String?
+  industry         String?
+  revenue          Float?
+  yearsInBusiness  Int?
+  proposalId       String?
+  contractId       String?
+  invoiceId        String?
+
+  contacts    Contact[]
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+```
+
+- Represents companies that contacts work for.
+- Stores references to documents exchanged with that company.
+
+#### Contact Model (Universal Personhood)
+
+```prisma
+model Contact {
+  id        String   @id @default(cuid())
+  companyId String
+  companyHQ CompanyHQ @relation(fields: [companyId], references: [id])
+
+  firstName String?
+  lastName  String?
+  goesBy    String?
+  email     String?
+  phone     String?
+  title     String?
+
+  contactCompanyId String?
+  contactCompany   Company? @relation(fields: [contactCompanyId], references: [id], onDelete: SetNull)
+
+  buyerDecision String?
+  howMet        String?
+  photoURL      String?
+
+  pipeline Pipeline?
+
+  contactListId String?
+  contactList   ContactList? @relation(fields: [contactListId], references: [id], onDelete: SetNull)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+```
+
+- Flat structure supports universal personhood and rapid hydration.
+- Optional scaffolding fields (`buyerDecision`, `howMet`, `photoURL`) prepare data for enrichment.
+
+#### Pipeline Model (Intentional Pipeline State)
+
+```prisma
+model Pipeline {
+  id        String   @id @default(cuid())
+  contactId String   @unique
+  contact   Contact  @relation(fields: [contactId], references: [id], onDelete: Cascade)
+
+  pipeline  String
+  stage     String
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+```
+
+- Manages conversion state by pipeline and stage identifiers.
+- `contactId` uniqueness guarantees one pipeline record per contact.
+
+#### ContactList Model (Grouping Container)
+
+```prisma
+model ContactList {
+  id        String   @id @default(cuid())
+  companyId String
+  companyHQ CompanyHQ @relation(fields: [companyId], references: [id], onDelete: Cascade)
+
+  name        String
+  description String?
+  type        String?
+
+  contacts Contact[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+```
+
+- Lets tenants segment contacts into reusable groupings.
+
+---
+
+### Architecture Patterns
+
+#### Contact Creation (MVP)
+
+1. Create contact scoped to `CompanyHQId`.
+2. Create or find the associated `Company`.
+3. Link the contact via `contactCompanyId`.
+4. Initialize the contact’s `Pipeline` state.
+
+#### Contact Hydration
+
+- Always filter by `CompanyHQId`.
+- Include pipeline filters when needed (`pipeline` and `stage` string values).
+- Owner data remains isolated from contact hydration.
+
+```javascript
+const contacts = await prisma.contact.findMany({
+  where: {
+    companyId: companyHQId,
+    pipeline: {
+      pipeline: 'prospect',
+      stage: 'prospect-meeting'
+    }
+  },
+  include: { pipeline: true }
+});
+```
+
+#### Pipeline Conversion
+
+- Update the existing pipeline record to move a contact through the funnel.
+- Use `upsert` to create pipeline entries on demand.
+
+```javascript
+await prisma.pipeline.upsert({
+  where: { contactId },
+  update: {
+    pipeline: 'client',
+    stage: 'client-onboarding'
+  },
+  create: {
+    contactId,
+    pipeline: 'client',
+    stage: 'client-onboarding'
+  }
+});
+```
+
+#### Document Attachment
+
+- Proposals, contracts, and invoices link to the `Company` record.
+- Keep the contact record focused on the person and their relationship state.
+
+---
+
+### Firebase Authentication & Owner Hydration
+
+#### Owner Creation Flow
+
+- `POST /api/owner/create` finds or creates the owner by `firebaseId`.
+- Parses Firebase `displayName` into `name`.
+- Stores photo URL for quick retrieval.
+
+#### Owner Hydration Flow
+
+- `GET /api/owner/hydrate` requires Firebase token verification.
+- Returns owned and managed `CompanyHQ` records to drive routing decisions.
+- Frontend stores `ownerId`, `owner`, `companyHQId`, and `companyHQ` in localStorage.
+
+#### Routing Logic
+
+- Missing `name` routes to `/profilesetup`.
+- Missing `CompanyHQ` routes to `/company/create-or-choose`.
+- Fully hydrated owners reach `/growth-dashboard`.
+
+#### Profile Setup vs Owner Identity Survey
+
+- **Profile Setup (`/profilesetup`)** collects fallback name data (`PUT /api/owner/:id/profile`).
+- **Owner Identity Survey (`/owner-identity-survey`)** captures business preferences (`PUT /api/owner/:id/survey`).
+- Both feed into onboarding but handle distinct concerns.
+
+---
+
+### Multi-Tenancy Deep Dive
+
+- Every model includes `CompanyHQId`-based scoping to enforce tenant isolation.
+- `ownerId` and `managerId` define access control without polluting contact data.
+- Query patterns must always include the tenant filter to prevent cross-tenant leakage.
+- Company records are created only in support of contacts, mirroring real-world relationships.
+
+---
+
+### Key Takeaways
+
+1. `CompanyHQId` is the tenant boundary; everything lives under it.
+2. Contacts are flat universal personhood records; owners are separate entities.
+3. Pipeline conversion happens through the dedicated `Pipeline` model.
+4. Companies represent the organizations contacts work for and host document references.
+5. Firebase authentication standardizes owner creation, hydration, and onboarding routes.
+6. Tenant isolation is guaranteed by filtering all queries through `CompanyHQId`.
 
 ---
 
@@ -508,6 +809,7 @@ curl -H "Authorization: Bearer <token>" https://ignitebd-backend.onrender.com/ap
 ## Related Documentation
 
 - **`IgniteBD_Navigation_Flow.md`** - Complete user navigation flow and experience (Splash → Welcome → Dashboard)
+- **`docs/dealpipeline.md`** - Deal Pipeline data flow, MVP scope, and roadmap
 - **`IGNITE_ARCHITECTURE.md`** - Complete architecture, schema, and data flow patterns
 - **`FIREBASE-AUTH-AND-USER-MANAGEMENT.md`** - Authentication patterns and user management
 - **`README.md`** (frontend) - Quick start and project overview

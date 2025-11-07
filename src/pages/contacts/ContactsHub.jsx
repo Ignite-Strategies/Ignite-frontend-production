@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Upload, Users, List, Building2, Filter, ArrowRight, RefreshCw } from 'lucide-react';
+import { Upload, Users, List, Building2, Filter, ArrowRight, RefreshCw, Sparkles } from 'lucide-react';
 import api from '../../lib/api';
 
 export default function ContactsHub() {
@@ -101,9 +101,9 @@ export default function ContactsHub() {
       hover: 'hover:border-indigo-400 hover:shadow-lg'
     },
     {
-      id: 'lists',
-      title: 'Contact Lists',
-      description: 'Manage collections of contacts for campaigns',
+      id: 'lists-manage',
+      title: 'Manage Contact Lists',
+      description: 'Create and organize lists for campaigns',
       route: '/contacts/list-manager',
       icon: List,
       color: 'purple',
@@ -112,16 +112,15 @@ export default function ContactsHub() {
       hover: 'hover:border-purple-400 hover:shadow-lg'
     },
     {
-      id: 'view-lists',
-      title: 'View Lists',
-      description: 'View and manage specific lists',
-      route: '/contacts/list-manager', // Opens list manager, then click into specific list
-      icon: List,
+      id: 'lists-build',
+      title: 'Build New List',
+      description: 'Start a targeted list from filters',
+      route: '/contacts/list-builder',
+      icon: Sparkles,
       color: 'pink',
       gradient: 'from-pink-50 to-pink-100',
       border: 'border-pink-200',
-      hover: 'hover:border-pink-400 hover:shadow-lg',
-      note: 'Access from Contact Lists page'
+      hover: 'hover:border-pink-400 hover:shadow-lg'
     },
     {
       id: 'business',
@@ -159,7 +158,7 @@ export default function ContactsHub() {
             <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
             </svg>
-            Back to Dashboard
+            Back to Growth Dashboard
           </button>
           
           <div className="flex items-center justify-between">
@@ -233,10 +232,10 @@ export default function ContactsHub() {
               <strong className="text-gray-900">View Contacts:</strong> See all your contacts (people) in a searchable table
             </div>
             <div>
-              <strong className="text-gray-900">Contact Lists:</strong> Create and manage collections of contacts for campaigns
+              <strong className="text-gray-900">Manage Contact Lists:</strong> Create, edit, and organize campaign lists
             </div>
             <div>
-              <strong className="text-gray-900">View Lists:</strong> Open specific lists to see contacts
+              <strong className="text-gray-900">Build New List:</strong> Launch the builder to generate a targeted list
             </div>
             <div>
               <strong className="text-gray-900">Add Business:</strong> Manage prospect/client companies
