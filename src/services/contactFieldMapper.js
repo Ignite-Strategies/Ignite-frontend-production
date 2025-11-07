@@ -18,6 +18,12 @@
  * Map form data to Contact model format
  */
 export function mapFormToContact(formData, companyHQId) {
+  // Validate companyHQId is provided
+  if (!companyHQId) {
+    console.error('❌ mapFormToContact: companyHQId is missing!', companyHQId);
+    throw new Error('CompanyHQId is required to create a contact');
+  }
+  
   return {
     // Required
     crmId: companyHQId, // CompanyHQId for multi-tenancy (renamed from companyId to crmId)

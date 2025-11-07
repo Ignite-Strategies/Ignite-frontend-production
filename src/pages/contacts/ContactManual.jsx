@@ -168,13 +168,27 @@ export default function ContactManual() {
 
       // Map form data to models
       console.log('📋 Mapping form data...');
+      console.log('🔍 companyHQId value:', companyHQId);
+      console.log('🔍 companyHQId type:', typeof companyHQId);
+      console.log('🔍 companyHQId truthy?', !!companyHQId);
+      
       const contactData = mapFormToContact(formData, companyHQId);
       const companyData = mapFormToCompany(formData, companyHQId);
       const pipelineData = mapFormToPipeline(formData);
       
       console.log('📤 Contact data:', contactData);
+      console.log('🔍 contactData.crmId:', contactData.crmId);
       console.log('🏢 Company data:', companyData);
       console.log('📊 Pipeline data:', pipelineData);
+      
+      // Verify crmId is present
+      if (!contactData.crmId) {
+        console.error('❌ CRITICAL: crmId is missing from contactData!');
+        console.error('❌ contactData object:', JSON.stringify(contactData, null, 2));
+        alert('Error: Company ID not found. Please refresh the page and try again.');
+        setSaving(false);
+        return;
+      }
 
       // Call universal contact create route
       console.log('🚀 Calling /api/contacts/universal-create...');
