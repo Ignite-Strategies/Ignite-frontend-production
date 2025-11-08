@@ -8,21 +8,20 @@ type PersonaFormValues = {
   role?: string;
   painPoints?: string;
   goals?: string;
-  tagline?: string;
-  callToAction?: string;
-  companyHQId: string;
+  whatTheyWant?: string;
+  companyId: string;
 };
 
-type PersonaRecord = Omit<PersonaFormValues, 'companyHQId'> & {
+type PersonaRecord = Omit<PersonaFormValues, 'companyId'> & {
   id: string;
-  companyHQId: string;
+  companyId: string;
   createdAt?: string;
   updatedAt?: string;
 };
 
 type PersonaBuilderProps = {
   personaId?: string;
-  companyHQId?: string;
+  companyId?: string;
   onCancel?: () => void;
   onSuccess?: (persona: PersonaRecord) => void;
 };
@@ -37,12 +36,11 @@ const defaultValues: PersonaFormValues = {
   role: '',
   painPoints: '',
   goals: '',
-  tagline: '',
-  callToAction: '',
-  companyHQId: '',
+  whatTheyWant: '',
+  companyId: '',
 };
 
-const PersonaBuilder = ({ personaId, companyHQId: companyHQIdProp, onCancel, onSuccess }: PersonaBuilderProps) => {
+const PersonaBuilder = ({ personaId, companyId: companyIdProp, onCancel, onSuccess }: PersonaBuilderProps) => {
   const navigate = useNavigate();
   const [isHydrating, setIsHydrating] = useState<boolean>(Boolean(personaId));
   const [fetchError, setFetchError] = useState<string | null>(null);
@@ -50,19 +48,19 @@ const PersonaBuilder = ({ personaId, companyHQId: companyHQIdProp, onCancel, onS
   const [toastMessage, setToastMessage] = useState<string | null>(null);
   const toastTimerRef = useRef<number | null>(null);
 
-  const derivedCompanyHQId = useMemo(() => {
-    if (companyHQIdProp) {
-      return companyHQIdProp;
+  const derivedCompanyId = useMemo(() => {
+    if (companyIdProp) {
+      return companyIdProp;
     }
     if (typeof window !== 'undefined') {
       return (
-        window.localStorage.getItem('companyHQId') ??
-        window.localStorage.getItem('companyId') ?? // legacy fallback
+        window.localStorage.getItem('companyId') ??
+        window.localStorage.getItem('companyHQId') ?? // legacy fallback
         ''
       );
     }
     return '';
-  }, [companyHQIdProp]);
+  }, [companyIdProp]);
 
   const {
     register,
@@ -84,10 +82,10 @@ const PersonaBuilder = ({ personaId, companyHQId: companyHQIdProp, onCancel, onS
   }, []);
 
   useEffect(() => {
-    if (derivedCompanyHQId) {
-      setValue('companyHQId', derivedCompanyHQId);
+    if (derivedCompanyId) {
+      setValue('companyId', derivedCompanyId);
     }
-  }, [derivedCompanyHQId, setValue]);
+  }, [derivedCompanyId, setValue]);
 
   useEffect(() => {
     if (!personaId) {
@@ -112,14 +110,15 @@ const PersonaBuilder = ({ personaId, companyHQId: companyHQIdProp, onCancel, onS
           return;
         }
 
+        const record = persona as PersonaRecord;
+
         reset({
-          personaName: persona.personaName ?? '',
-          role: persona.role ?? '',
-          painPoints: persona.painPoints ?? '',
-          goals: persona.goals ?? '',
-          tagline: persona.tagline ?? '',
-          callToAction: persona.callToAction ?? '',
-          companyHQId: persona.companyHQId,
+          personaName: record.personaName ?? '',
+          role: record.role ?? '',
+          painPoints: record.painPoints ?? '',
+          goals: record.goals ?? '',
+          whatTheyWant: record.whatTheyWant ?? '',
+          companyId: record.companyId ?? '',
         });
       } catch (error) {
         if (!isMounted) {
@@ -152,8 +151,8 @@ const PersonaBuilder = ({ personaId, companyHQId: companyHQIdProp, onCancel, onS
   const submitHandler = handleSubmit(async (values) => {
     setSubmitError(null);
 
-    if (!values.companyHQId) {
-      setSubmitError('CompanyHQ context is required to save a persona.');
+    if (!values.companyId) {
+      setSubmitError('Company context is required to save a persona.');
       return;
     }
 
@@ -224,8 +223,8 @@ const PersonaBuilder = ({ personaId, companyHQId: companyHQIdProp, onCancel, onS
         <form onSubmit={submitHandler} className="space-y-6">
           <input
             type="hidden"
-            value={derivedCompanyHQId}
-            {...register('companyHQId', { required: true })}
+            value={derivedCompanyId}
+            {...register('companyId', { required: true })}
           />
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -279,28 +278,15 @@ const PersonaBuilder = ({ personaId, companyHQId: companyHQIdProp, onCancel, onS
             />
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-2">Tagline</label>
-              <input
-                type="text"
-                placeholder="Short descriptor you can use in decks or briefs"
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500"
-                disabled={isBusy}
-                {...register('tagline')}
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-2">Call To Action</label>
-              <input
-                type="text"
-                placeholder="What do you want them to do next?"
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500"
-                disabled={isBusy}
-                {...register('callToAction')}
-              />
-            </div>
+          <div>
+            <label className="block text-sm font-semibold text-gray-700 mb-2">What They Want From Us</label>
+            <textarea
+              rows={4}
+              placeholder="What are they hoping Ignite will help them achieve or solve?"
+              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500"
+              disabled={isBusy}
+              {...register('whatTheyWant')}
+            />
           </div>
 
           <div className="flex justify-end gap-4 pt-6 border-t border-gray-100">
