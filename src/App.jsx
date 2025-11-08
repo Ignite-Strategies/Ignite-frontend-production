@@ -220,6 +220,7 @@ function App() {
         <Route path="/persona" element={<Persona />} />
         <Route path="/personas" element={<Personas />} />
         <Route path="/personas/builder" element={<PersonaBuilder />} />
+        <Route path="/dashboard/personas" element={<Personas />} />
         <Route path="/bdpipeline" element={<Pipeline />} />
         <Route path="/ads" element={<AdsHub />} />
         <Route path="/ads/dashboard" element={<AdsDashboard />} />
