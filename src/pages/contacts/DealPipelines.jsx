@@ -149,8 +149,24 @@ export default function DealPipelines() {
         if (contact.id !== contactId) return contact;
         const updatedPipeline = {
           ...(contact.pipeline || {}),
-          pipeline: selectedPipeline,
           stage: nextStageId || null
+        };
+        return { ...contact, pipeline: updatedPipeline };
+      })
+    );
+  };
+
+  const handlePipelineChange = (contactId, nextPipelineId) => {
+    const defaultStage =
+      pipelineMap[nextPipelineId]?.[0] || null;
+
+    setContacts((prevContacts) =>
+      prevContacts.map((contact) => {
+        if (contact.id !== contactId) return contact;
+        const updatedPipeline = {
+          ...(contact.pipeline || {}),
+          pipeline: nextPipelineId,
+          stage: defaultStage
         };
         return { ...contact, pipeline: updatedPipeline };
       })
@@ -265,19 +281,19 @@ export default function DealPipelines() {
               </div>
             );
           })}
-          <div className="bg-white border border-gray-200 rounded-lg px-4 py-3 shadow-sm flex items-center justify-between">
-            <div className="text-xs font-semibold text-gray-500 uppercase tracking-wide">
-              Unassigned
+          {unassignedContacts.length > 0 && (
+            <div className="bg-white border border-gray-200 rounded-lg px-4 py-3 shadow-sm flex items-center justify-between">
+              <div className="text-xs font-semibold text-gray-500 uppercase tracking-wide">
+                Unassigned
+              </div>
+              <div className="flex items-baseline gap-1 text-gray-900 font-semibold text-lg">
+                <span>{unassignedContacts.length}</span>
+                <span className="text-xs font-normal text-gray-500">
+                  {unassignedContacts.length === 1 ? 'contact' : 'contacts'}
+                </span>
+              </div>
             </div>
-            <div className="flex items-baseline gap-1 text-gray-900 font-semibold text-lg">
-              <span>
-                {unassignedContacts.length}
-              </span>
-              <span className="text-xs font-normal text-gray-500">
-                {unassignedContacts.length === 1 ? 'contact' : 'contacts'}
-              </span>
-            </div>
-          </div>
+          )}
         </div>
 
         <div className="bg-white border border-gray-200 rounded-xl shadow-sm">
@@ -293,6 +309,9 @@ export default function DealPipelines() {
                   </th>
                   <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Title
+                  </th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Pipeline
                   </th>
                   <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Stage
@@ -326,6 +345,21 @@ export default function DealPipelines() {
                         </td>
                         <td className="px-4 py-3 text-sm text-gray-500">
                           {contact.title || '—'}
+                        </td>
+                        <td className="px-4 py-3 text-sm text-gray-600">
+                          <select
+                            value={slugify(contact.pipeline?.pipeline) || selectedPipeline}
+                            onChange={(event) =>
+                              handlePipelineChange(contact.id, event.target.value)
+                            }
+                            className="border border-gray-300 rounded-lg px-2 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                          >
+                            {pipelineKeys.map((pipelineId) => (
+                              <option key={pipelineId} value={pipelineId}>
+                                {formatLabel(pipelineId)}
+                              </option>
+                            ))}
+                          </select>
                         </td>
                         <td className="px-4 py-3 text-sm text-gray-600">
                           <select
